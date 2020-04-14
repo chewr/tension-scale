@@ -28,6 +28,9 @@ func main() {
 	if err := do(); err != nil {
 		panic(err)
 	}
+	if err := test(); err != nil {
+		panic(err)
+	}
 }
 
 func test() error {
@@ -86,11 +89,11 @@ func do() error {
 
 func getWorkout() maxhangs.Workout {
 	basicRep := maxhangs.Composite(
-		maxhangs.WorkInterval(loadcell.PoundsToRaw(80), 3*time.Second),
+		maxhangs.WorkInterval(loadcell.PoundsToRaw(30), 3*time.Second),
 		maxhangs.RestInterval(30*time.Second),
-		maxhangs.WorkInterval(loadcell.PoundsToRaw(80), 6*time.Second),
+		maxhangs.WorkInterval(loadcell.PoundsToRaw(30), 6*time.Second),
 		maxhangs.RestInterval(30*time.Second),
-		maxhangs.WorkInterval(loadcell.PoundsToRaw(80), 9*time.Second),
+		maxhangs.WorkInterval(loadcell.PoundsToRaw(30), 9*time.Second),
 	)
 	superSetRest := maxhangs.RestInterval(90 * time.Second)
 
