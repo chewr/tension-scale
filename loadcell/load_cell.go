@@ -53,7 +53,7 @@ func (l *loadCell) MeasureTimeSeries(ctx context.Context) <-chan measurement.Tim
 				continue
 			}
 			tss := measurement.TimeSeriesSample{
-				Sample: analog.Sample{Raw: value},
+				Sample: analog.Sample{Raw: value - l.tare},
 				Time:   time.Now(),
 			}
 			writeTimer.Reset(maxWriteWait)

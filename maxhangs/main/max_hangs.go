@@ -6,6 +6,7 @@ import (
 	"github.com/chewr/tension-scale/loadcell"
 	"github.com/chewr/tension-scale/maxhangs"
 	"github.com/chewr/tension-scale/measurement"
+	"periph.io/x/periph/conn/gpio"
 	"periph.io/x/periph/experimental/devices/hx711"
 	"periph.io/x/periph/host/rpi"
 	"time"
@@ -21,9 +22,39 @@ var (
 )
 
 func main() {
+	if err := test(); err != nil {
+		panic(err)
+	}
 	if err := do(); err != nil {
 		panic(err)
 	}
+}
+
+func test() error {
+	if err := PIN_LED_RED.Out(gpio.High); err != nil {
+		return err
+	}
+	time.Sleep(time.Second / 4)
+	if err := PIN_LED_RED.Out(gpio.Low); err != nil {
+		return err
+	}
+	time.Sleep(time.Second / 4)
+	if err := PIN_LED_YLW.Out(gpio.High); err != nil {
+		return err
+	}
+	time.Sleep(time.Second / 4)
+	if err := PIN_LED_YLW.Out(gpio.Low); err != nil {
+		return err
+	}
+	time.Sleep(time.Second / 4)
+	if err := PIN_LED_GRN.Out(gpio.High); err != nil {
+		return err
+	}
+	time.Sleep(time.Second / 4)
+	if err := PIN_LED_GRN.Out(gpio.Low); err != nil {
+		return err
+	}
+	return nil
 }
 
 func do() error {
@@ -40,9 +71,14 @@ func do() error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if err := sensor.Tare(ctx, 0); err != nil {
+
+	// make tare obvious
+	kch := led.Blink(display.YellowOn, display.YellowOff, time.Second/10)
+	if err := sensor.Tare(ctx, 10); err != nil {
 		return err
 	}
+	display.YellowOff()
+	close(kch)
 
 	input := measurement.NewTimeSeriesDevice(sensor.MeasureTimeSeries(ctx))
 	return getWorkout().Run(ctx, display, input)
