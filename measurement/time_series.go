@@ -1,6 +1,7 @@
 package measurement
 
 import (
+	"errors"
 	"periph.io/x/periph/experimental/conn/analog"
 	"sync"
 	"time"
@@ -10,16 +11,18 @@ type TimeSeriesDevice struct {
 	samples <-chan TimeSeriesSample
 }
 
-func NewTimeSeriesDevice()
+func NewTimeSeriesDevice(c <-chan TimeSeriesSample) (*TimeSeriesDevice) {
+	return &TimeSeriesDevice{samples:c}
+}
 
 func (d *TimeSeriesDevice) Stream() <-chan TimeSeriesSample {
-	return samples
+	return d.samples
 }
 
 func (d *TimeSeriesDevice) Read() (TimeSeriesSample, error) {
 	sample, ok := <-d.samples
 	if !ok {
-		return errors.New("device closed")
+		return sample, errors.New("device closed")
 	}
 	return sample, nil
 }

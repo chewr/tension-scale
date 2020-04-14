@@ -9,14 +9,14 @@ import (
 )
 
 type Workout interface {
-	Run(ctx context.Context, display led.TrafficLight, input measurement.TimeSeriesDevice) error
+	Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error
 }
 
 var _ Workout = new(restInterval)
 
 type restInterval time.Duration
 
-func (r restInterval) Run(ctx context.Context, display led.TrafficLight, _ measurement.TimeSeriesDevice) error {
+func (r restInterval) Run(ctx context.Context, display led.TrafficLight, _ *measurement.TimeSeriesDevice) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
@@ -38,7 +38,7 @@ type workInterval struct {
 	timeUnderTension time.Duration
 }
 
-func (w workInterval) Run(ctx context.Context, display led.TrafficLight, input measurement.TimeSeriesDevice) error {
+func (w workInterval) Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	defer display.GreenOff()
@@ -85,7 +85,7 @@ var _ Workout = composite{}
 
 type composite []Workout
 
-func (c composite) Run(ctx context.Context, display led.TrafficLight, input measurement.TimeSeriesDevice) error {
+func (c composite) Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error {
 	for _, w := range c {
 		select {
 		case <-ctx.Done():
