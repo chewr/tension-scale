@@ -25,7 +25,8 @@ import (
 var (
 	// ErrTimeout is returned from Read and ReadAveraged when the ADC took too
 	// long to indicate data was available.
-	ErrTimeout = errors.New("timed out waiting for HX711 to become ready")
+	ErrTimeout  = errors.New("timed out waiting for HX711 to become ready")
+	ErrNotReady = errors.New("module HX711 has no data available")
 )
 
 // InputMode controls the voltage gain and the channel multiplexer on the HX711.
@@ -195,6 +196,10 @@ func (d *Dev) ReadTimeout(timeout time.Duration) (int32, error) {
 	// Wait for the falling edge that indicates the ADC has data.
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	return d.readTimeout(timeout)
+}
+
+func (d *Dev) readTimeout(timeout time.Duration) (int32, error) {
 	if !d.IsReady() {
 		if !d.data.WaitForEdge(timeout) {
 			return 0, ErrTimeout
@@ -203,17 +208,58 @@ func (d *Dev) ReadTimeout(timeout time.Duration) (int32, error) {
 	return d.readRaw()
 }
 
+// Reset resets on-chip hardware
+//
+// It sets the clock high for 100 us to power off the chip, then sets the clock
+// to low to return the chip to normal operations. The gain is reset to the
+// default of Channel A/128 by this, so if the input mode is different, it reads
+// and discards a sequence to set the new input mode.
+func (d *Dev) Reset() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if err := d.clk.Out(gpio.High); err != nil {
+		return err
+	}
+	time.Sleep(100 * time.Microsecond)
+	if err := d.clk.Out(gpio.Low); err != nil {
+		return err
+	}
+	// read and discard to ensure gain/channel are set, if not default
+	if d.inputMode != CHANNEL_A_GAIN_128 {
+		_, err := d.readTimeout(time.Second)
+		return err
+	}
+	return nil
+}
+
 func (d *Dev) readRaw() (int32, error) {
+	if !d.IsReady() {
+		return 0, ErrNotReady
+	}
+
+	// T_1 .1 us minimum between falling DOUT and rising PD_SCK
+	time.Sleep(100 * time.Nanosecond)
+
 	// Shift the 24-bit 2's compliment value.
 	var value uint32
 	for i := 0; i < 24; i++ {
 		if err := d.clk.Out(gpio.High); err != nil {
 			return 0, err
 		}
+
+		// T_2 minimum time for DOUT to stabilize after rising edge
+		time.Sleep(100 * time.Nanosecond)
 		level := d.data.Read()
+
+		// T_3 typical length of PD_SCK pulse
+		time.Sleep(time.Microsecond)
+
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
+
+		// T_4 typical low time for PD_SCK
+		time.Sleep(time.Microsecond)
 
 		value <<= 1
 		if level {
@@ -226,9 +272,11 @@ func (d *Dev) readRaw() (int32, error) {
 		if err := d.clk.Out(gpio.High); err != nil {
 			return 0, err
 		}
+		time.Sleep(time.Microsecond)
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
+		time.Sleep(time.Microsecond)
 	}
 	// Convert the 24-bit 2's compliment value to a 32-bit signed value.
 	return int32(value<<8) >> 8, nil
