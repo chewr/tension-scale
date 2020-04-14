@@ -3,6 +3,7 @@ package loadcell
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/chewr/tension-scale/measurement"
 	"periph.io/x/periph/experimental/conn/analog"
 	"periph.io/x/periph/experimental/devices/hx711"
@@ -52,6 +53,7 @@ func (l *loadCell) MeasureTimeSeries(ctx context.Context) <-chan measurement.Tim
 			if err != nil {
 				continue
 			}
+			fmt.Println(value - l.tare)
 			tss := measurement.TimeSeriesSample{
 				Sample: analog.Sample{Raw: value - l.tare},
 				Time:   time.Now(),
