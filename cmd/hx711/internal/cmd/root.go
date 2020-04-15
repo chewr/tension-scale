@@ -48,6 +48,7 @@ func Execute() {
 	if err := setupCmd(); err != nil {
 		panic(err)
 	}
+	rootCmd.AddCommand(readCmd)
 	ctx, cancel := signals.ContextWithShutdown(context.Background())
 	defer cancel()
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
