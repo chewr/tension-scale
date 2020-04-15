@@ -14,6 +14,7 @@ package hx711
 
 import (
 	"errors"
+	"periph.io/x/periph/experimental/devices/hx711"
 	"sync"
 	"time"
 
@@ -29,18 +30,6 @@ var (
 	ErrNotReady = errors.New("module HX711 has no data available")
 )
 
-// InputMode controls the voltage gain and the channel multiplexer on the HX711.
-// Channel A can be used with a gain of 128 or 64, and Channel B can be used
-// with a gain of 32.
-type InputMode int
-
-// Valid InputMode.
-const (
-	CHANNEL_A_GAIN_128 InputMode = 1
-	CHANNEL_A_GAIN_64  InputMode = 3
-	CHANNEL_B_GAIN_32  InputMode = 2
-)
-
 // Dev is a handle to a hx711.
 type Dev struct {
 	// Immutable.
@@ -50,7 +39,7 @@ type Dev struct {
 
 	// Mutable.
 	mu        sync.Mutex
-	inputMode InputMode
+	inputMode hx711.InputMode
 	done      chan struct{}
 }
 
@@ -67,7 +56,7 @@ func New(clk gpio.PinOut, data gpio.PinIn) (*Dev, error) {
 	}
 	return &Dev{
 		name:      "hx711{" + clk.Name() + ", " + data.Name() + "}",
-		inputMode: CHANNEL_A_GAIN_128,
+		inputMode: hx711.CHANNEL_A_GAIN_128,
 		clk:       clk,
 		data:      data,
 		done:      nil,
@@ -113,7 +102,7 @@ func (d *Dev) SetFunc(f pin.Func) error {
 }
 
 // SetInputMode changes the voltage gain and channel multiplexer mode.
-func (d *Dev) SetInputMode(inputMode InputMode) error {
+func (d *Dev) SetInputMode(inputMode hx711.InputMode) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.inputMode = inputMode
@@ -220,12 +209,12 @@ func (d *Dev) Reset() error {
 	if err := d.clk.Out(gpio.High); err != nil {
 		return err
 	}
-	time.Sleep(100 * time.Microsecond)
+	nap(100 * time.Microsecond)
 	if err := d.clk.Out(gpio.Low); err != nil {
 		return err
 	}
 	// read and discard to ensure gain/channel are set, if not default
-	if d.inputMode != CHANNEL_A_GAIN_128 {
+	if d.inputMode != hx711.CHANNEL_A_GAIN_128 {
 		_, err := d.readTimeout(time.Second)
 		return err
 	}
@@ -238,7 +227,7 @@ func (d *Dev) readRaw() (int32, error) {
 	}
 
 	// T_1 .1 us minimum between falling DOUT and rising PD_SCK
-	time.Sleep(100 * time.Nanosecond)
+	nap(100 * time.Nanosecond)
 
 	// Shift the 24-bit 2's compliment value.
 	var value uint32
@@ -248,18 +237,18 @@ func (d *Dev) readRaw() (int32, error) {
 		}
 
 		// T_2 minimum time for DOUT to stabilize after rising edge
-		time.Sleep(100 * time.Nanosecond)
+		nap(100 * time.Nanosecond)
 		level := d.data.Read()
 
 		// T_3 typical length of PD_SCK pulse
-		time.Sleep(time.Microsecond)
+		nap(time.Microsecond)
 
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
 
 		// T_4 typical low time for PD_SCK
-		time.Sleep(time.Microsecond)
+		nap(time.Microsecond)
 
 		value <<= 1
 		if level {
@@ -272,14 +261,28 @@ func (d *Dev) readRaw() (int32, error) {
 		if err := d.clk.Out(gpio.High); err != nil {
 			return 0, err
 		}
-		time.Sleep(time.Microsecond)
+		nap(time.Microsecond)
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
-		time.Sleep(time.Microsecond)
+		nap(time.Microsecond)
 	}
 	// Convert the 24-bit 2's compliment value to a 32-bit signed value.
 	return int32(value<<8) >> 8, nil
 }
 
 var _ analog.PinADC = &Dev{}
+
+// nap is a short sleep.
+//
+// Unlike system-level sleep that relinquishes the CPU and relies on
+// system-level interrupts, nap wastes cycles but allows for finer
+// precision than the period between interrupts.
+func nap(duration time.Duration) {
+	start := time.Now()
+	for {
+		if time.Since(start) >= duration {
+			return
+		}
+	}
+}
