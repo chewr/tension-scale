@@ -222,8 +222,7 @@ func (d *Dev) Reset() error {
 }
 
 func (d *Dev) readRaw() (int32, error) {
-	if !d.IsReady() {
-		return 0, ErrNotReady
+	for !d.IsReady() {
 	}
 
 	// T_1 .1 us minimum between falling DOUT and rising PD_SCK
