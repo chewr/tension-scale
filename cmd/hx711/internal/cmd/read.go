@@ -268,6 +268,7 @@ func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {
 		select {
 		case <-ctx.Done():
 			return nil
+		default: // continue
 		}
 	}
 }
