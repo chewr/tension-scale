@@ -222,11 +222,12 @@ func (d *Dev) Reset() error {
 }
 
 func (d *Dev) readRaw() (int32, error) {
-	for !d.IsReady() {
+	if !d.IsReady() {
+		return 0, ErrNotReady
 	}
 
 	// T_1 .1 us minimum between falling DOUT and rising PD_SCK
-	nap(100 * time.Nanosecond)
+	nap(150 * time.Nanosecond)
 
 	// Shift the 24-bit 2's compliment value.
 	var value uint32
