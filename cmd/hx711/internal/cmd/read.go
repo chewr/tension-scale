@@ -227,26 +227,19 @@ func (p *onDemandSampleProducer) Read(ctx context.Context) (sample, error) {
 	if p.stopped {
 		return sample{}, ErrStopped
 	}
-	var (
-		s   sample
-		err error
-	)
 	if p.useTimeout {
-		var value int32
-		value, err = p.hx.ReadTimeout(time.Second)
-		s = sample{
+		value, err := p.hx.ReadTimeout(time.Second)
+		return sample{
 			value:     value,
 			timestamp: time.Now(),
-		}
-	} else {
-		var as analog.Sample
-		as, err = p.hx.Read()
-		s = sample{
-			value:     as.Raw,
-			timestamp: time.Now(),
-		}
+		}, err
 	}
-	return s, err
+	for !p.hx.IsReady() {}
+	as, err := p.hx.Read()
+	return sample{
+		value:     as.Raw,
+		timestamp: time.Now(),
+	}, err
 }
 
 func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {

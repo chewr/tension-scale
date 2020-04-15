@@ -11,4 +11,5 @@ type HX711 interface {
 	ReadContinuous() <-chan analog.Sample
 	ReadTimeout(timeout time.Duration) (int32, error)
 	SetInputMode(inputMode periphimpl.InputMode) error
+	IsReady() bool
 }
