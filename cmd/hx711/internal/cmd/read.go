@@ -45,7 +45,7 @@ func loadHx711(cmd *cobra.Command) (hx711.HX711, error) {
 	}
 	if viper.GetBool(flagReset) {
 		cmd.Println("Resetting the hx711 module")
-		err = hx.Reset()
+		err = hx.Reset(cmd.Context())
 	}
 	return hx, err
 }
@@ -234,12 +234,16 @@ func (p *onDemandSampleProducer) Read(ctx context.Context) (sample, error) {
 			timestamp: time.Now(),
 		}, err
 	}
-	for !p.hx.IsReady() {}
+	for !p.hx.IsReady() {
+	}
 	as, err := p.hx.Read()
+	if err != nil {
+		return sample{}, err
+	}
 	return sample{
 		value:     as.Raw,
 		timestamp: time.Now(),
-	}, err
+	}, nil
 }
 
 func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {

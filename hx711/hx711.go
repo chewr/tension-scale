@@ -1,4 +1,4 @@
-// Original code from https://periph.io/x/periph/experimental/devices/hx711
+// Adapted from https://periph.io/x/periph/experimental/devices/hx711
 //
 // Copyright 2018 The Periph Authors. All rights reserved.
 // Use of this source code is governed under the Apache License, Version 2.0
@@ -13,6 +13,7 @@
 package hx711
 
 import (
+	"context"
 	"errors"
 	"periph.io/x/periph/experimental/devices/hx711"
 	"sync"
@@ -106,7 +107,7 @@ func (d *Dev) SetInputMode(inputMode hx711.InputMode) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.inputMode = inputMode
-	_, err := d.readRaw()
+	_, err := d.readTimeout(context.TODO())
 	return err
 }
 
@@ -182,16 +183,24 @@ func (d *Dev) IsReady() bool {
 // ADC doesn't pull its Data pin low to indicate there is data ready before the
 // timeout is reached, ErrTimeout is returned.
 func (d *Dev) ReadTimeout(timeout time.Duration) (int32, error) {
-	// Wait for the falling edge that indicates the ADC has data.
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	return d.readTimeout(timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return d.TryRead(ctx)
 }
 
-func (d *Dev) readTimeout(timeout time.Duration) (int32, error) {
-	if !d.IsReady() {
-		if !d.data.WaitForEdge(timeout) {
+func (d *Dev) TryRead(ctx context.Context) (int32, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.readTimeout(ctx)
+}
+
+func (d *Dev) readTimeout(ctx context.Context) (int32, error) {
+	// Wait for the falling edge that indicates the ADC has data.
+	for !d.IsReady() {
+		select {
+		case <-ctx.Done():
 			return 0, ErrTimeout
+		default:
 		}
 	}
 	return d.readRaw()
@@ -203,7 +212,7 @@ func (d *Dev) readTimeout(timeout time.Duration) (int32, error) {
 // to low to return the chip to normal operations. The gain is reset to the
 // default of Channel A/128 by this, so if the input mode is different, it reads
 // and discards a sequence to set the new input mode.
-func (d *Dev) Reset() error {
+func (d *Dev) Reset(ctx context.Context) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if err := d.clk.Out(gpio.High); err != nil {
@@ -215,7 +224,7 @@ func (d *Dev) Reset() error {
 	}
 	// read and discard to ensure gain/channel are set, if not default
 	if d.inputMode != hx711.CHANNEL_A_GAIN_128 {
-		_, err := d.readTimeout(time.Second)
+		_, err := d.readTimeout(ctx)
 		return err
 	}
 	return nil
