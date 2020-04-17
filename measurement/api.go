@@ -2,7 +2,6 @@ package measurement
 
 import (
 	"context"
-	"github.com/chewr/tension-scale/measurement"
 	"periph.io/x/periph/conn"
 )
 
@@ -19,10 +18,10 @@ type Sensor interface {
 
 	// Read blocks until a read is available, and then
 	// reads out data
-	Read(ctx context.Context) (measurement.TimeSeriesSample, error)
+	Read(ctx context.Context) (TimeSeriesSample, error)
 
 	// TryRead reads immediately if data available, otherwise returns error
-	TryRead() (measurement.TimeSeriesSample, error)
+	TryRead() (TimeSeriesSample, error)
 }
 
 type StreamingSensor interface {
@@ -30,5 +29,5 @@ type StreamingSensor interface {
 
 	// ReadContinuous continuously reads as data is available,
 	// sending results over the returned channel
-	ReadContinuous() <-chan measurement.TimeSeriesSample
+	ReadContinuous() <-chan TimeSeriesSample
 }
