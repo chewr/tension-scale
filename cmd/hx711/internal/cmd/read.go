@@ -250,6 +250,12 @@ func (p *onDemandSampleProducer) Read(ctx context.Context) (sample, error) {
 
 func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {
 	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
 		s, err := p.Read(ctx)
 		switch err {
 		case nil:
@@ -259,16 +265,10 @@ func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {
 			return nil
 		default:
 			cmd.PrintErrln("failed to read sample: ", err)
-			return err
+			continue
 		}
 
 		cmd.Println(printSample(s))
-
-		select {
-		case <-ctx.Done():
-			return nil
-		default: // continue
-		}
 	}
 }
 
