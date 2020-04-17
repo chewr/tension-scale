@@ -25,7 +25,6 @@ const (
 )
 
 var (
-	ErrNotImplemented = errors.New("not implemented")
 	ErrStopped        = errors.New("hx711 is not powered on")
 	ErrNotReady       = errors.New("data is not ready for reading")
 )
