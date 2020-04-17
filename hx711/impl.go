@@ -7,7 +7,6 @@ import (
 	"periph.io/x/periph/conn/gpio"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/conn/analog"
-	"periph.io/x/periph/host/cpu"
 	"sync"
 	"time"
 )
@@ -168,7 +167,7 @@ func (d *dev) waitForReady(ctx context.Context) error {
 	}
 
 	// after DOUT falling edge, wait T_1 for data to be ready
-	cpu.Nanospin(t1)
+	nanospin(t1)
 	return nil
 }
 
@@ -192,14 +191,14 @@ func (d *dev) readRaw() (int32, error) {
 			return 0, err
 		}
 
-		cpu.Nanospin(t2)
+		nanospin(t2)
 		level := d.data.Read()
 
-		cpu.Nanospin(t3 - t2)
+		nanospin(t3 - t2)
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
-		cpu.Nanospin(t4)
+		nanospin(t4)
 
 		value <<= 1
 		if level {
@@ -212,11 +211,11 @@ func (d *dev) readRaw() (int32, error) {
 		if err := d.clk.Out(gpio.High); err != nil {
 			return 0, err
 		}
-		cpu.Nanospin(t3)
+		nanospin(t3)
 		if err := d.clk.Out(gpio.Low); err != nil {
 			return 0, err
 		}
-		cpu.Nanospin(t4)
+		nanospin(t4)
 	}
 	// Convert the 24-bit 2's compliment value to a 32-bit signed value.
 	return int32(value<<8) >> 8, nil
@@ -234,7 +233,7 @@ func (d *dev) TryRead() (measurement.TimeSeriesSample, error) {
 	if !d.isReady() {
 		return measurement.TimeSeriesSample{}, ErrNotReady
 	}
-	cpu.Nanospin(t1)
+	nanospin(t1)
 	return d.readSample()
 }
 
@@ -288,4 +287,9 @@ func (d *dev) Reset(ctx context.Context) error {
 	}
 
 	return d.waitForReady(ctx)
+}
+
+func nanospin(d time.Duration) {
+	for start := time.Now(); time.Since(start) < d; {
+	}
 }
