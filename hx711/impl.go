@@ -181,7 +181,7 @@ func (d *dev) readSample() (measurement.TimeSeriesSample, error) {
 	return measurement.TimeSeriesSample{
 		Sample: analog.Sample{Raw: v},
 		Time:   timestamp,
-	}, ErrNotImplemented
+	}, nil
 }
 
 func (d *dev) readRaw() (int32, error) {
