@@ -130,10 +130,10 @@ func (d *dev) stop() error {
 func (d *dev) IsReady() bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	return d.isReady()
+	return d.ready()
 }
 
-func (d *dev) isReady() bool {
+func (d *dev) ready() bool {
 	return d.powerOn && d.data.Read() == gpio.Low
 }
 
@@ -157,7 +157,7 @@ func (d *dev) waitForReady(ctx context.Context) error {
 		return ErrStopped
 	}
 	// Coarse-grained wait; hx711 becomes ready 10-80Hz
-	for !d.isReady() {
+	for !d.ready() {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -234,7 +234,7 @@ func (d *dev) TryRead() (measurement.TimeSeriesSample, error) {
 		return measurement.TimeSeriesSample{}, ErrStopped
 	}
 
-	if !d.isReady() {
+	if !d.ready() {
 		return measurement.TimeSeriesSample{}, ErrNotReady
 	}
 	nanospin(t1)
