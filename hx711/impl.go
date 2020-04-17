@@ -15,8 +15,8 @@ const (
 	// timing spec from hx711 datasheet:
 	// https://components101.com/sites/default/files/component_datasheet/HX711%20Datasheet.pdf
 
-	t1            = 100 * time.Nanosecond // T_1 typical time for data to be available after dout falling edge
-	t2            = 100 * time.Nanosecond // T_2 typical time for dout to stabilize after pd_sck rising edge
+	t1            = 200 * time.Nanosecond // T_1 typical time for data to be available after dout falling edge
+	t2            = 200 * time.Nanosecond // T_2 typical time for dout to stabilize after pd_sck rising edge
 	t3            = time.Microsecond      // T_3 typical pd_sck high time
 	t4            = time.Microsecond      // T_4 typical pd_sck low time
 	powerDownTime = 60 * time.Microsecond // time to hold pd_sck at HIGH to signal power down
@@ -25,8 +25,9 @@ const (
 )
 
 var (
-	ErrStopped        = errors.New("hx711 is not powered on")
-	ErrNotReady       = errors.New("data is not ready for reading")
+	ErrStopped  = errors.New("hx711 is not powered on")
+	ErrNotReady = errors.New("data is not ready for reading")
+	ErrBadRead  = errors.New("got unstable reading from device")
 )
 
 // dev is a handle to a hx711.
@@ -217,7 +218,11 @@ func (d *dev) readRaw() (int32, error) {
 		nanospin(t4)
 	}
 	// Convert the 24-bit 2's compliment value to a 32-bit signed value.
-	return int32(value<<8) >> 8, nil
+	r := int32(value<<8) >> 8
+	if r&(r+1) == 0 { // if r is a sequence of 0s followed by a sequence of 1s
+		return r, ErrBadRead
+	}
+	return r, nil
 }
 
 // TryRead implements measurement.Sensor
