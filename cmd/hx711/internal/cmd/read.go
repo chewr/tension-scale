@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/chewr/tension-scale/hx711"
+	"github.com/chewr/tension-scale/hx711/backcompat"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"periph.io/x/periph/experimental/conn/analog"
@@ -33,24 +34,25 @@ var (
 	PIN_HX711_DOUT = rpi.P1_29 // GPIO5
 )
 
-func loadHx711(cmd *cobra.Command) (hx711.HX711, error) {
+func loadHx711(cmd *cobra.Command) (backcompat.HX711, error) {
 	if viper.GetBool(flagUsePeriphImplementation) {
 		cmd.Println("Using periph hx711 driver implementation")
 		return periphimpl.New(PIN_HX711_SCLK, PIN_HX711_DOUT)
 	}
 	cmd.Println("Using custom hx711 driver implementation")
-	hx, err := hx711.New(PIN_HX711_SCLK, PIN_HX711_DOUT)
+	hxv2, err := hx711.New(PIN_HX711_SCLK, PIN_HX711_DOUT)
 	if err != nil {
 		return nil, err
 	}
 	if viper.GetBool(flagReset) {
 		cmd.Println("Resetting the hx711 module")
-		err = hx.Reset(cmd.Context())
+		err = hxv2.Reset(cmd.Context())
 	}
+	hx := backcompat.HX711FromV2(hxv2)
 	return hx, err
 }
 
-func initHx711(cmd *cobra.Command) (hx711.HX711, error) {
+func initHx711(cmd *cobra.Command) (backcompat.HX711, error) {
 	hx, err := loadHx711(cmd)
 	if err != nil {
 		return nil, err
@@ -115,7 +117,7 @@ type SampleProducer interface {
 
 var _ SampleProducer = &continuousSampleProducer{}
 
-func NewContinuousSampleProducer(hx hx711.HX711) SampleProducer {
+func NewContinuousSampleProducer(hx backcompat.HX711) SampleProducer {
 	return &continuousSampleProducer{
 		hx: hx,
 	}
@@ -123,7 +125,7 @@ func NewContinuousSampleProducer(hx hx711.HX711) SampleProducer {
 
 type continuousSampleProducer struct {
 	sync.Mutex
-	hx hx711.HX711
+	hx backcompat.HX711
 	ch <-chan sample
 }
 
@@ -198,7 +200,7 @@ func (p *continuousSampleProducer) getChannel() <-chan sample {
 
 var _ SampleProducer = &onDemandSampleProducer{}
 
-func NewOnDemandSampleProvider(hx hx711.HX711, useTimeout bool) SampleProducer {
+func NewOnDemandSampleProvider(hx backcompat.HX711, useTimeout bool) SampleProducer {
 	return &onDemandSampleProducer{
 		hx:         hx,
 		useTimeout: useTimeout,
@@ -208,7 +210,7 @@ func NewOnDemandSampleProvider(hx hx711.HX711, useTimeout bool) SampleProducer {
 type onDemandSampleProducer struct {
 	sync.Mutex
 	stopped    bool
-	hx         hx711.HX711
+	hx         backcompat.HX711
 	useTimeout bool
 }
 

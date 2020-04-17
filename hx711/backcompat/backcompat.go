@@ -35,7 +35,7 @@ func (b *hx711Bridge) SetInputMode(inputMode periphimpl.InputMode) error {
 	default:
 		return hx711.ErrGainUnavailable
 	}
-	return b.v2.SetGain(gain)
+	return b.v2.SetGain(context.TODO(), gain)
 }
 func (b *hx711Bridge) IsReady() bool { return b.v2.IsReady() }
 

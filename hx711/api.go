@@ -1,6 +1,7 @@
 package hx711
 
 import (
+	"context"
 	"errors"
 	"github.com/chewr/tension-scale/measurement"
 )
@@ -14,12 +15,11 @@ const (
 )
 
 var (
-	ErrNotReady = errors.New("data is not ready for reading")
 	ErrGainUnavailable = errors.New("specified gain value is unavailable")
 )
 
 type V2 interface {
 	measurement.StreamingSensor
-	SetGain(gain Gain) error
+	SetGain(ctx context.Context, gain Gain) error
 }
 

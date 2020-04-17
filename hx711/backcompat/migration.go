@@ -96,7 +96,7 @@ func (v *v2Bridge) TryRead() (measurement.TimeSeriesSample, error) {
 	}, err
 }
 
-func (v *v2Bridge) SetGain(g hx711.Gain) error {
+func (v *v2Bridge) SetGain(_ context.Context, g hx711.Gain) error {
 	var inputMode periphimpl.InputMode
 	switch g {
 	case hx711.ChannelA128:
