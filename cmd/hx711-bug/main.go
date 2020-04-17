@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	host.Init()
 	if err := mainE(); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
@@ -18,6 +17,10 @@ func main() {
 }
 
 func mainE() error {
+	if _, err := host.Init(); err != nil {
+		return err
+	}
+
 	// HX711 board configured with CLK @ P1_31 and DOUT @ P1_29
 	hx, err := hx711.New(rpi.P1_31, rpi.P1_29)
 	if err != nil {

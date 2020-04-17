@@ -16,6 +16,7 @@ const (
 	ChannelB32  Gain = 3
 )
 
+// deprecated, use V2 instead
 type HX711 interface {
 	analog.PinADC
 	ReadContinuous() <-chan analog.Sample
