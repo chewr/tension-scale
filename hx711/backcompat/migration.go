@@ -1,35 +1,15 @@
-package hx711
+package backcompat
 
 import (
 	"context"
+	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/measurement"
 	"periph.io/x/periph/experimental/conn/analog"
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
 	"time"
 )
 
-type Gain int
-
-const (
-	ChannelA128 Gain = 1
-	ChannelA64  Gain = 2
-	ChannelB32  Gain = 3
-)
-
-// deprecated, use V2 instead
-type HX711 interface {
-	analog.PinADC
-	ReadContinuous() <-chan analog.Sample
-	ReadTimeout(timeout time.Duration) (int32, error)
-	SetInputMode(inputMode periphimpl.InputMode) error
-	IsReady() bool
-}
-
-type V2 interface {
-	measurement.StreamingSensor
-}
-
-func V2FromHX711(hx711 HX711) V2 {
+func V2FromHX711(hx711 HX711) hx711.V2 {
 	return &v2Bridge{hx711}
 }
 
@@ -107,11 +87,30 @@ func (v *v2Bridge) Read(ctx context.Context) (measurement.TimeSeriesSample, erro
 
 func (v *v2Bridge) TryRead() (measurement.TimeSeriesSample, error) {
 	if !v.hx.IsReady() {
-		return measurement.TimeSeriesSample{}, ErrNotReady
+		return measurement.TimeSeriesSample{}, hx711.ErrNotReady
 	}
 	s, err := v.hx.Read()
 	return measurement.TimeSeriesSample{
 		Sample: s,
 		Time:   time.Now(),
 	}, err
+}
+
+func (v *v2Bridge) SetGain(g hx711.Gain) error {
+	var inputMode periphimpl.InputMode
+	switch g {
+	case hx711.ChannelA128:
+		inputMode = periphimpl.CHANNEL_A_GAIN_128
+	case hx711.ChannelA64:
+		inputMode = periphimpl.CHANNEL_A_GAIN_64
+	case hx711.ChannelB32:
+		inputMode = periphimpl.CHANNEL_B_GAIN_32
+	default:
+		return hx711.ErrGainUnavailable
+	}
+	return v.hx.SetInputMode(inputMode)
+}
+
+func (v *v2Bridge) Range() (analog.Sample, analog.Sample) {
+	return analog.Sample{Raw: -(1 << 23)}, analog.Sample{Raw: 1 << 23}
 }

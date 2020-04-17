@@ -3,6 +3,7 @@ package measurement
 import (
 	"context"
 	"periph.io/x/periph/conn"
+	"periph.io/x/periph/experimental/conn/analog"
 )
 
 type Sensor interface {
@@ -20,14 +21,20 @@ type Sensor interface {
 	// reads out data
 	Read(ctx context.Context) (TimeSeriesSample, error)
 
-	// TryRead reads immediately if data available, otherwise returns error
+	// TryRead reads immediately if data available,
+	// otherwise returns error
 	TryRead() (TimeSeriesSample, error)
+
+	// Range returns the minimum and maximum values the
+	// sensor is capable of reading
+	Range() (analog.Sample, analog.Sample)
 }
 
 type StreamingSensor interface {
 	Sensor
 
-	// ReadContinuous continuously reads as data is available,
-	// sending results over the returned channel
+	// ReadContinuous continuously reads as data is
+	// available, sending results over the returned
+	// channel
 	ReadContinuous() <-chan TimeSeriesSample
 }
