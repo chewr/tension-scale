@@ -32,7 +32,7 @@ func mainE() error {
 	sampleCh := hx.ReadContinuous()
 	for s := range sampleCh {
 		// observe that many samples are -1
-		fmt.Println("%8d", s.Raw)
+		fmt.Printf("%8d\n", s.Raw)
 	}
 	return nil
 }
