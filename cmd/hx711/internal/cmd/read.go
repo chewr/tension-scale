@@ -256,7 +256,9 @@ func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {
 		default:
 		}
 
+		start := time.Now()
 		s, err := p.Read(ctx)
+		dur := time.Since(start)
 		switch err {
 		case nil:
 			break
@@ -268,7 +270,7 @@ func consume(ctx context.Context, cmd *cobra.Command, p SampleProducer) error {
 			continue
 		}
 
-		cmd.Println(printSample(s))
+		cmd.Println(printSample(s), fmt.Sprintf("%d ms", dur/time.Millisecond))
 	}
 }
 
