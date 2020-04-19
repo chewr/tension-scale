@@ -7,7 +7,7 @@ import (
 )
 
 var workoutCmd = &cobra.Command{
-	Use:   "hangboard",
+	Use:   "workout",
 	Short: "Run a workout with the hangboard",
 }
 

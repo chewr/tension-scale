@@ -6,7 +6,7 @@ import (
 )
 
 var maxHangCmd = &cobra.Command{
-	Use:   "maxhang",
+	Use:   "max-hang",
 	Short: "Run a max hang workout",
 	Long: `Max hang workouts are designed to increase maximum force
 output. A max hang protocol involves exerting maximum or 
