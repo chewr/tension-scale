@@ -92,6 +92,38 @@ func WorkInterval(t physic.Force, tut time.Duration) Workout {
 	}
 }
 
+func SetupInterval(d time.Duration) Workout {
+	return setupInterval(d)
+}
+
+type setupInterval time.Duration
+
+func (s setupInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
+	defer cancel()
+
+	go func() {
+		done := led.Blink(display.YellowOn, display.YellowOff, time.Second/4)
+		defer close(done)
+		<-ctx.Done()
+	}()
+
+	for {
+		fs, err := loadCell.Read(ctx)
+		switch err {
+		case nil: // continue processing
+		case hx711.ErrBadRead:
+			continue // drop a bad reading and continue
+		default:
+			return err
+		}
+		if fs.Force >= 20*physic.PoundForce {
+			break
+		}
+	}
+	return nil
+}
+
 var _ Workout = composite{}
 
 type composite []Workout
