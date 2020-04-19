@@ -44,13 +44,13 @@ more to come!`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := do(context.Background()); err != nil {
+	if err := setupAndExecute(context.Background()); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-func do(ctx context.Context) error {
+func setupAndExecute(ctx context.Context) error {
 	ctx, cancel := signals.ContextWithShutdown(ctx)
 	defer cancel()
 	if err := setup(rootCmd); err != nil {
