@@ -37,6 +37,7 @@ https://www.climbstrong.com/education-center/making-sense-hangboard-programs/
 }
 
 func AddCommands(rootCmd *cobra.Command) {
+	flags(maxHangCmd)
 	rootCmd.AddCommand(maxHangCmd)
 }
 
