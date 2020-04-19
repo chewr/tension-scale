@@ -12,8 +12,8 @@ var (
 )
 
 type ForceSample struct {
-	reading   physic.Force
-	timestamp time.Time
+	physic.Force
+	time.Time
 }
 
 // Sensor defines the API of a load cell sensor

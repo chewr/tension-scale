@@ -64,7 +64,7 @@ func (s *hx711Sensor) Read(ctx context.Context) (ForceSample, error) {
 		return ForceSample{}, err
 	}
 	return ForceSample{
-		reading:   s.calibration.ToForce(int64(r.Raw) - s.tare),
-		timestamp: r.Time,
+		Force: s.calibration.ToForce(int64(r.Raw) - s.tare),
+		Time:  r.Time,
 	}, nil
 }

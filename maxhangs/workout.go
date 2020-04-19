@@ -2,21 +2,22 @@ package maxhangs
 
 import (
 	"context"
+	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
-	"github.com/chewr/tension-scale/measurement"
+	"periph.io/x/periph/conn/physic"
 	"time"
 )
 
 type Workout interface {
-	Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error
+	Run(ctx context.Context, display led.TrafficLight, loadCell loadcell.Sensor) error
 }
 
 var _ Workout = new(restInterval)
 
 type restInterval time.Duration
 
-func (r restInterval) Run(ctx context.Context, display led.TrafficLight, _ *measurement.TimeSeriesDevice) error {
+func (r restInterval) Run(ctx context.Context, display led.TrafficLight, _ loadcell.Sensor) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
@@ -34,47 +35,56 @@ func RestInterval(r time.Duration) Workout {
 var _ Workout = &workInterval{}
 
 type workInterval struct {
-	threshold        loadcell.ForceUnit
+	threshold        physic.Force
 	timeUnderTension time.Duration
 }
 
-func (w workInterval) Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+func (w workInterval) Run(ctx context.Context, display led.TrafficLight, loadCell loadcell.Sensor) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second+2*w.timeUnderTension)
 	defer cancel()
+	defer display.RedOff()
 	defer display.GreenOff()
 	defer display.YellowOff()
 
 	underTension := false
 	var startTime time.Time
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case sample := <-input.Stream():
-			if sample.Add(time.Second / 2).Before(time.Now()) {
-				// throw out old samples
-				continue
+		// Read force
+		r, err := loadCell.Read(ctx)
+		switch err {
+		case nil: // continue processing
+		case hx711.ErrBadRead:
+			continue // drop a bad reading and continue
+		default:
+			return err
+		}
+
+		// State machine transitions
+		if r.Force < w.threshold {
+			underTension = false
+			if err := display.GreenOff(); err != nil {
+				return err
 			}
-			if loadcell.ForceUnit(sample.Raw) >= w.threshold {
-				if underTension && sample.Time.After(startTime.Add(w.timeUnderTension)) {
-					return nil
-				}
-				if !underTension {
-					underTension = true
-					startTime = sample.Time
-					display.YellowOff()
-					display.GreenOn()
-				}
-			} else {
-				underTension = false
-				display.GreenOff()
-				display.YellowOn()
+			if err := display.YellowOn(); err != nil {
+				return err
 			}
+			continue
+		}
+		switch {
+		case underTension:
+			if r.Time.Sub(startTime) >= w.timeUnderTension && r.Force >= w.threshold {
+				return nil
+			}
+		default:
+			underTension = r.Force >= w.threshold
+			startTime = r.Time
+			display.YellowOff()
+			display.GreenOn()
 		}
 	}
 }
 
-func WorkInterval(t loadcell.ForceUnit, tut time.Duration) Workout {
+func WorkInterval(t physic.Force, tut time.Duration) Workout {
 	return &workInterval{
 		threshold:        t,
 		timeUnderTension: tut,
@@ -85,14 +95,14 @@ var _ Workout = composite{}
 
 type composite []Workout
 
-func (c composite) Run(ctx context.Context, display led.TrafficLight, input *measurement.TimeSeriesDevice) error {
+func (c composite) Run(ctx context.Context, display led.TrafficLight, loadCell loadcell.Sensor) error {
 	for _, w := range c {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		if err := w.Run(ctx, display, input); err != nil {
+		if err := w.Run(ctx, display, loadCell); err != nil {
 			return err
 		}
 	}
