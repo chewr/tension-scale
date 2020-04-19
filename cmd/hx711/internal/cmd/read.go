@@ -26,7 +26,6 @@ var (
 )
 
 var (
-	ErrNotImplemented = errors.New("command not implemented")
 	ErrStopped        = errors.New("driver not running")
 )
 
