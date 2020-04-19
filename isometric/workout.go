@@ -41,7 +41,7 @@ type workInterval struct {
 }
 
 func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second+2*w.timeUnderTension)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
 	defer display.RedOff()
 	defer display.GreenOff()
