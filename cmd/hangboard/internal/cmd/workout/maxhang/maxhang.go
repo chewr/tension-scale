@@ -46,7 +46,7 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	week, err := cmd.Flags().GetInt(flagThreshold)
+	week, err := cmd.Flags().GetInt(flagWeek)
 	if err != nil {
 		return err
 	}
