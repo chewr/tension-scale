@@ -1,8 +1,9 @@
 package maxhang
 
 import (
-	"github.com/chewr/tension-scale/cmd/hangboard/internal/wip"
+	"github.com/chewr/tension-scale/workout/maxhang"
 	"github.com/spf13/cobra"
+	"periph.io/x/periph/conn/physic"
 )
 
 var maxHangCmd = &cobra.Command{
@@ -32,9 +33,33 @@ https://www.climbstrong.com/education-center/making-sense-hangboard-programs/
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	RunE: func(cmd *cobra.Command, args []string) error { return wip.ErrCmdNotImplemented },
+	RunE: doWorkout,
 }
 
 func AddCommands(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(maxHangCmd)
+}
+
+func doWorkout(cmd *cobra.Command, args []string) error {
+	threshold, err := cmd.Flags().GetInt64(flagThreshold)
+	if err != nil {
+		return err
+	}
+	week, err := cmd.Flags().GetInt(flagThreshold)
+	if err != nil {
+		return err
+	}
+	workout, err := maxhang.MaxHangWorkout(maxhang.Week(week), physic.Force(threshold)*physic.PoundForce)
+	if err != nil {
+		return err
+	}
+	display, err := SetupDisplay()
+	if err != nil {
+		return err
+	}
+	loadCell, err := SetupLoadCell()
+	if err != nil {
+		return err
+	}
+	return workout.Run(cmd.Context(), display, loadCell)
 }

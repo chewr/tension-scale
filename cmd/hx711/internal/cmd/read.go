@@ -26,7 +26,7 @@ var (
 )
 
 var (
-	ErrStopped        = errors.New("driver not running")
+	ErrStopped = errors.New("driver not running")
 )
 
 var (
