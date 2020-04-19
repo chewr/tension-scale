@@ -49,7 +49,7 @@ type dev struct {
 // The data pin must support edge detection. If your pin doesn't natively
 // support edge detection you can use PollEdge from gpioutil.
 func New(clk gpio.PinOut, data gpio.PinIn) (V2, error) {
-	if err := data.In(gpio.PullDown, gpio.FallingEdge); err != nil {
+	if err := data.In(gpio.PullDown, gpio.NoEdge); err != nil {
 		return nil, err
 	}
 	if err := clk.Out(gpio.Low); err != nil {
@@ -156,14 +156,16 @@ func (d *dev) waitForReady(ctx context.Context) error {
 	if !d.powerOn {
 		return ErrStopped
 	}
-	// Coarse-grained wait; hx711 becomes ready 10-80Hz
+
+	// TODO(rchew): for some reason making this wait more
+	// coarsely grained by adding time.Sleep results in
+	// the device intermittently resetting
 	for !d.ready() {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		time.Sleep(maxSampleRate.Period() / 10)
 	}
 
 	// after DOUT falling edge, wait T_1 for data to be ready
@@ -279,7 +281,7 @@ func (d *dev) Reset(ctx context.Context) error {
 	defer d.mu.Unlock()
 	if !d.powerOn {
 		d.powerOn = true
-		if err := d.clk.Out(gpio.Low); err != nil {
+		if err := d.setupPins(); err != nil {
 			return err
 		}
 	}
@@ -291,6 +293,16 @@ func (d *dev) Reset(ctx context.Context) error {
 	}
 
 	return d.waitForReady(ctx)
+}
+
+func (d *dev) setupPins() error {
+	if err := d.data.In(gpio.PullDown, gpio.NoEdge); err != nil {
+		return err
+	}
+	if err := d.clk.Out(gpio.Low); err != nil {
+		return err
+	}
+	return nil
 }
 
 func nanospin(d time.Duration) {
