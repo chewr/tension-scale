@@ -1,9 +1,10 @@
 package backcompat
 
 import (
+	"time"
+
 	"periph.io/x/periph/experimental/conn/analog"
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
-	"time"
 )
 
 // deprecated, use V2 instead

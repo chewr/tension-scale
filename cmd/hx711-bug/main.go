@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
+
 	"periph.io/x/periph/experimental/devices/hx711"
 	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/rpi"
-	"time"
 )
 
 func main() {

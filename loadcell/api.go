@@ -3,8 +3,9 @@ package loadcell
 import (
 	"context"
 	"errors"
-	"periph.io/x/periph/conn/physic"
 	"time"
+
+	"periph.io/x/periph/conn/physic"
 )
 
 var (

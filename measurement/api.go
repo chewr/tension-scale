@@ -2,6 +2,7 @@ package measurement
 
 import (
 	"context"
+
 	"periph.io/x/periph/conn"
 	"periph.io/x/periph/experimental/conn/analog"
 )

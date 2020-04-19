@@ -3,12 +3,13 @@ package hx711
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/chewr/tension-scale/measurement"
 	"periph.io/x/periph/conn/gpio"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/conn/analog"
-	"sync"
-	"time"
 )
 
 const (

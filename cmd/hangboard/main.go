@@ -15,7 +15,9 @@ limitations under the License.
 */
 package main
 
-import "github.com/chewr/tension-scale/cmd/hangboard/internal/cmd"
+import (
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd"
+)
 
 func main() {
 	cmd.Execute()

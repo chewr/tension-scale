@@ -21,7 +21,9 @@ import (
 )
 
 func init() {
-	if _, err := host.Init(); err != nil { panic(err)}
+	if _, err := host.Init(); err != nil {
+		panic(err)
+	}
 }
 
 func main() {

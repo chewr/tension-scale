@@ -5,6 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/hx711/backcompat"
 	"github.com/spf13/cobra"
@@ -12,8 +15,6 @@ import (
 	"periph.io/x/periph/experimental/conn/analog"
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
 	"periph.io/x/periph/host/rpi"
-	"sync"
-	"time"
 )
 
 var (

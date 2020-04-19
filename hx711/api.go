@@ -3,6 +3,7 @@ package hx711
 import (
 	"context"
 	"errors"
+
 	"github.com/chewr/tension-scale/measurement"
 )
 
@@ -22,4 +23,3 @@ type V2 interface {
 	measurement.StreamingSensor
 	SetGain(ctx context.Context, gain Gain) error
 }
-

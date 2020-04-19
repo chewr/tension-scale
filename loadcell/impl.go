@@ -2,8 +2,9 @@ package loadcell
 
 import (
 	"context"
-	"github.com/chewr/tension-scale/hx711"
 	"sync"
+
+	"github.com/chewr/tension-scale/hx711"
 )
 
 type hx711Sensor struct {

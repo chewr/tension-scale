@@ -1,6 +1,8 @@
 package loadcell
 
-import "periph.io/x/periph/conn/physic"
+import (
+	"periph.io/x/periph/conn/physic"
+)
 
 var (
 	// TrueSun400Slow represents measured values for the

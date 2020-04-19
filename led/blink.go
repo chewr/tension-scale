@@ -1,6 +1,8 @@
 package led
 
-import "time"
+import (
+	"time"
+)
 
 func Blink(on, off func() error, interval time.Duration) chan<- struct{} {
 	t := time.NewTicker(interval)
@@ -25,4 +27,3 @@ func Blink(on, off func() error, interval time.Duration) chan<- struct{} {
 	}()
 	return done
 }
-

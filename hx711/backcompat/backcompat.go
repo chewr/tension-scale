@@ -2,11 +2,12 @@ package backcompat
 
 import (
 	"context"
+	"time"
+
 	"github.com/chewr/tension-scale/hx711"
 	"periph.io/x/periph/conn/pin"
 	"periph.io/x/periph/experimental/conn/analog"
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
-	"time"
 )
 
 func HX711FromV2(v2 hx711.V2) HX711 {
