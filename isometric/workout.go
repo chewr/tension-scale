@@ -2,6 +2,8 @@ package isometric
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/chewr/tension-scale/hx711"
@@ -10,15 +12,38 @@ import (
 	"periph.io/x/periph/conn/physic"
 )
 
+type WorkoutOutcome string
+
+const (
+	Success WorkoutOutcome = "success"
+	Pass    WorkoutOutcome = "pass"
+	Failure WorkoutOutcome = "failure"
+)
+
+type WorkoutRecorder interface {
+	Start(ctx context.Context, descriptor string) (WorkoutUpdater, error)
+}
+
+type WorkoutUpdater interface {
+	Write(sample ...loadcell.ForceSample) error
+	Finish(outcome WorkoutOutcome) error
+	Close()
+}
+
 type Workout interface {
-	Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error
+	fmt.Stringer
+	Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error
 }
 
 var _ Workout = new(restInterval)
 
 type restInterval time.Duration
 
-func (r restInterval) Run(ctx context.Context, display *led.TrafficLight, _ loadcell.Sensor) error {
+func (r restInterval) String() string {
+	return fmt.Sprintf("rest-%v", time.Duration(r))
+}
+
+func (r restInterval) Run(ctx context.Context, display *led.TrafficLight, _ loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
@@ -40,12 +65,25 @@ type workInterval struct {
 	timeUnderTension time.Duration
 }
 
-func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error {
+func (w workInterval) String() string {
+	return fmt.Sprintf("static-%v-%dlbs",
+		w.timeUnderTension,
+		w.threshold/physic.PoundForce,
+	)
+}
+
+func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
 	defer display.RedOff()
 	defer display.GreenOff()
 	defer display.YellowOff()
+
+	updater, err := recorder.Start(ctx, w.String())
+	defer updater.Close()
+	if err != nil {
+		return err
+	}
 
 	underTension := false
 	var startTime time.Time
@@ -57,6 +95,11 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 		case hx711.ErrBadRead:
 			continue // drop a bad reading and continue
 		default:
+			return err
+		}
+
+		// record data
+		if err := updater.Write(r); err != nil {
 			return err
 		}
 
@@ -74,7 +117,7 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 		switch {
 		case underTension:
 			if r.Time.Sub(startTime) >= w.timeUnderTension && r.Force >= w.threshold {
-				return nil
+				return updater.Finish(Success)
 			}
 		default:
 			underTension = r.Force >= w.threshold
@@ -98,7 +141,11 @@ func SetupInterval(d time.Duration) Workout {
 
 type setupInterval time.Duration
 
-func (s setupInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error {
+func (s setupInterval) String() string {
+	return fmt.Sprintf("setup-%v", time.Duration(s))
+}
+
+func (s setupInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
 	defer cancel()
 
@@ -128,14 +175,23 @@ var _ Workout = composite{}
 
 type composite []Workout
 
-func (c composite) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor) error {
+func (c composite) String() string {
+	workouts := []Workout(c)
+	s := make([]string, len(workouts))
+	for i, w := range workouts {
+		s[i] = w.String()
+	}
+	return strings.Join(s, ",")
+}
+
+func (c composite) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
 	for _, w := range c {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		if err := w.Run(ctx, display, loadCell); err != nil {
+		if err := w.Run(ctx, display, loadCell, recorder); err != nil {
 			return err
 		}
 	}
