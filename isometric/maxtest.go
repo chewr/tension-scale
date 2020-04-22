@@ -150,10 +150,8 @@ func countdownSequence(ctx context.Context, display *led.TrafficLight) error {
 	if err := display.RedOff(); err != nil {
 		return err
 	}
-	if err := display.YellowOn(); err != nil {
-		return err
-	}
+	ch := led.Blink(display.YellowOn, display.YellowOff, time.Second/16)
 	time.Sleep(time.Second)
-
+	close(ch)
 	return nil
 }
