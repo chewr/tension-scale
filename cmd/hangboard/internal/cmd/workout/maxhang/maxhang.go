@@ -65,5 +65,10 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err := loadCell.Tare(cmd.Context(), 20); err != nil {
 		return err
 	}
-	return workout.Run(cmd.Context(), display, loadCell)
+	recorder, err := SetupOutput()
+	if err != nil {
+		return err
+	}
+
+	return workout.Run(cmd.Context(), display, loadCell, recorder)
 }

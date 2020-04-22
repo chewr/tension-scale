@@ -20,16 +20,6 @@ const (
 	Failure WorkoutOutcome = "failure"
 )
 
-type WorkoutRecorder interface {
-	Start(ctx context.Context, descriptor string) (WorkoutUpdater, error)
-}
-
-type WorkoutUpdater interface {
-	Write(sample ...loadcell.ForceSample) error
-	Finish(outcome WorkoutOutcome) error
-	Close()
-}
-
 type Workout interface {
 	fmt.Stringer
 	Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error
