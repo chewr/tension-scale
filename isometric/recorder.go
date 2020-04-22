@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"periph.io/x/periph/conn/physic"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/chewr/tension-scale/loadcell"
-	"periph.io/x/periph/conn/physic"
 )
 
 var (
@@ -69,7 +69,7 @@ func (u *csvFileRecorderUpdater) Finish(_ WorkoutOutcome) error {
 	w := csv.NewWriter(f)
 
 	columnHeaders := []string{
-		"force", "time",
+		"time", "force",
 	}
 
 	// write column headers
@@ -88,7 +88,7 @@ func (u *csvFileRecorderUpdater) Finish(_ WorkoutOutcome) error {
 	// write rest of data
 	for _, s := range u.samples {
 		entry := []string{
-			fmt.Sprintf("%d", s.Force/physic.Newton), fmt.Sprintf("%d", s.Sub(start)),
+			fmt.Sprintf("%d", s.Sub(start)), fmt.Sprintf("%d", s.Force/physic.Newton),
 		}
 		if err := w.Write(entry); err != nil {
 			return err
