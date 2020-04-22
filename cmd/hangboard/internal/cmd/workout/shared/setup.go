@@ -5,6 +5,8 @@ import (
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
+	"os"
+	"path/filepath"
 	"periph.io/x/periph/host/rpi"
 )
 
@@ -28,6 +30,10 @@ func SetupLoadCell() (loadcell.Sensor, error) {
 }
 
 func SetupOutput() (isometric.WorkoutRecorder, error) {
-	const defaultOutputDir = "~/Documents/Workouts"
-	return isometric.NewCsvFileRecorder(defaultOutputDir)
+	const defaultOutputDir = "Documents/workouts"
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	return isometric.NewCsvFileRecorder(filepath.Join(homedir, defaultOutputDir))
 }
