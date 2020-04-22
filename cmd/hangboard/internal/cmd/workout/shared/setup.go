@@ -1,4 +1,4 @@
-package maxhang
+package shared
 
 import (
 	"github.com/chewr/tension-scale/hx711"

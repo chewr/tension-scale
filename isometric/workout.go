@@ -70,10 +70,10 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 	defer display.YellowOff()
 
 	updater, err := recorder.Start(ctx, w.String())
-	defer updater.Close()
 	if err != nil {
 		return err
 	}
+	defer updater.Close()
 
 	underTension := false
 	var startTime time.Time

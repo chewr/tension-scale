@@ -1,6 +1,7 @@
 package maxhang
 
 import (
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
 	"github.com/chewr/tension-scale/workout/maxhang"
 	"github.com/spf13/cobra"
 	"periph.io/x/periph/conn/physic"
@@ -50,25 +51,25 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	workout, err := maxhang.MaxHangWorkout(maxhang.Week(week), physic.Force(threshold)*physic.PoundForce)
+	maxHangWorkout, err := maxhang.MaxHangWorkout(maxhang.Week(week), physic.Force(threshold)*physic.PoundForce)
 	if err != nil {
 		return err
 	}
-	display, err := SetupDisplay()
+	display, err := shared.SetupDisplay()
 	if err != nil {
 		return err
 	}
-	loadCell, err := SetupLoadCell()
+	loadCell, err := shared.SetupLoadCell()
 	if err != nil {
 		return err
 	}
 	if err := loadCell.Tare(cmd.Context(), 20); err != nil {
 		return err
 	}
-	recorder, err := SetupOutput()
+	recorder, err := shared.SetupOutput()
 	if err != nil {
 		return err
 	}
 
-	return workout.Run(cmd.Context(), display, loadCell, recorder)
+	return maxHangWorkout.Run(cmd.Context(), display, loadCell, recorder)
 }
