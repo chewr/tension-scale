@@ -118,7 +118,7 @@ func NewCsvFileRecorder(dir string) (WorkoutRecorder, error) {
 
 func (r *csvFileRecorder) Start(_ context.Context, descriptor string) (WorkoutUpdater, error) {
 	const timeFormat = "20060102150405"
-	filename := fmt.Sprintf("%s-%s", time.Now().Format(timeFormat), descriptor)
+	filename := fmt.Sprintf("%s-%s.csv", time.Now().Format(timeFormat), descriptor)
 	fpath := filepath.Join(r.dir, filename)
 	return &csvFileRecorderUpdater{
 		filename: fpath,
