@@ -2,6 +2,7 @@ package maxhang
 
 import (
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/workout/maxhang"
 	"github.com/spf13/cobra"
 	"periph.io/x/periph/conn/physic"
@@ -66,10 +67,12 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err := loadCell.Tare(cmd.Context(), 20); err != nil {
 		return err
 	}
-	recorder, err := shared.SetupOutput()
+	fileRecorder, err := shared.SetupOutput()
 	if err != nil {
 		return err
 	}
+	cliRecorder := shared.CliRecorder(cmd)
+	recorder := data.MultiRecorder(fileRecorder, cliRecorder)
 
 	return maxHangWorkout.Run(cmd.Context(), display, loadCell, recorder)
 }

@@ -17,7 +17,7 @@ type WorkoutRecorder interface {
 }
 
 type WorkoutUpdater interface {
-	Write(sample ...loadcell.ForceSample) error
+	Write(samples ...loadcell.ForceSample) error
 	Finish(outcome WorkoutOutcome) error
 	Close()
 }
