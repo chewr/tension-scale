@@ -33,7 +33,7 @@ func (r restInterval) String() string {
 	return fmt.Sprintf("rest-%v", time.Duration(r))
 }
 
-func (r restInterval) Run(ctx context.Context, display *led.TrafficLight, _ loadcell.Sensor, _ WorkoutRecorder) error {
+func (r restInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
@@ -63,11 +63,27 @@ func (w workInterval) String() string {
 }
 
 func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
-	defer cancel()
 	defer display.RedOff()
 	defer display.GreenOff()
 	defer display.YellowOff()
+
+	// Tare + setup
+	if err := display.RedOn(); err != nil {
+		return err
+	}
+	if err := display.YellowOn(); err != nil {
+		return err
+	}
+	time.Sleep(time.Second)
+	if err := loadCell.Tare(ctx, 20); err != nil {
+		return err
+	}
+	if err := display.RedOff(); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
+	defer cancel()
 
 	updater, err := recorder.Start(ctx, w.String())
 	if err != nil {
@@ -125,8 +141,8 @@ func WorkInterval(t physic.Force, tut time.Duration) Workout {
 	}
 }
 
-func SetupInterval(d time.Duration) Workout {
-	return setupInterval(d)
+func SetupInterval() Workout {
+	return setupInterval(time.Minute)
 }
 
 type setupInterval time.Duration
@@ -138,6 +154,23 @@ func (s setupInterval) String() string {
 func (s setupInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
 	defer cancel()
+	defer display.YellowOff()
+	defer display.RedOff()
+
+	if err := display.RedOn(); err != nil {
+		return err
+	}
+	if err := display.YellowOn(); err != nil {
+		return err
+	}
+	time.Sleep(5 * time.Second)
+
+	if err := display.RedOff(); err != nil {
+		return err
+	}
+	if err := loadCell.Tare(ctx, 40); err != nil {
+		return err
+	}
 
 	go func() {
 		done := led.Blink(display.YellowOn, display.YellowOff, time.Second/4)
