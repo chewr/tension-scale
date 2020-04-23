@@ -56,9 +56,9 @@ type workInterval struct {
 }
 
 func (w workInterval) String() string {
-	return fmt.Sprintf("static-%v-%dlbs",
+	return fmt.Sprintf("static-%v-%s",
 		w.timeUnderTension,
-		w.threshold/physic.PoundForce,
+		w.threshold.String(),
 	)
 }
 
@@ -74,7 +74,7 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 	if err := display.YellowOn(); err != nil {
 		return err
 	}
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	if err := loadCell.Tare(ctx, 20); err != nil {
 		return err
 	}

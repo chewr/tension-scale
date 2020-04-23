@@ -44,15 +44,19 @@ func AddCommands(rootCmd *cobra.Command) {
 }
 
 func doWorkout(cmd *cobra.Command, args []string) error {
-	threshold, err := cmd.Flags().GetInt64(flagThreshold)
+	threshold, err := cmd.Flags().GetString(flagThreshold)
 	if err != nil {
+		return err
+	}
+	f := new(physic.Force)
+	if err := f.Set(threshold); err != nil {
 		return err
 	}
 	week, err := cmd.Flags().GetInt(flagWeek)
 	if err != nil {
 		return err
 	}
-	maxHangWorkout, err := maxhang.MaxHangWorkout(maxhang.Week(week), physic.Force(threshold)*physic.PoundForce)
+	maxHangWorkout, err := maxhang.MaxHangWorkout(maxhang.Week(week), *f)
 	if err != nil {
 		return err
 	}

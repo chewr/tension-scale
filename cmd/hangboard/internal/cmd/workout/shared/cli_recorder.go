@@ -73,16 +73,16 @@ func (u *cliWorkoutRecorderUpdater) Finish(outcome isometric.WorkoutOutcome) err
 	sb.WriteString(fmt.Sprintf("%s:\n", u.name))
 	sb.WriteString(fmt.Sprintf("Peak Force: %s\n", peakForce.String()))
 	sb.WriteString(fmt.Sprintf("RFD: %d ms\n", rfd/time.Millisecond))
-	if maxForce3s >= 0 {
+	if maxForce3s >= physic.Newton {
 		sb.WriteString(fmt.Sprintf("Max Force (3s): %s\n", maxForce3s.String()))
 	}
-	if maxForce6s >= 0 {
+	if maxForce6s >= physic.Newton {
 		sb.WriteString(fmt.Sprintf("Max Force (6s): %s\n", maxForce6s.String()))
 	}
-	if maxForce9s >= 0 {
+	if maxForce9s >= physic.Newton {
 		sb.WriteString(fmt.Sprintf("Max Force (9s): %s\n", maxForce9s.String()))
 	}
-	if maxForce12s >= 0 {
+	if maxForce12s >= physic.Newton {
 		sb.WriteString(fmt.Sprintf("Max Force (12s): %s\n", maxForce12s.String()))
 	}
 

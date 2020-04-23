@@ -30,8 +30,20 @@ func (t maxTest) Run(ctx context.Context, display *led.TrafficLight, loadCell lo
 	}
 	defer updater.Close()
 
+	errCh := make(chan error)
+	go func() {
+		time.Sleep(2 * time.Second)
+		if err := loadCell.Tare(ctx, 20); err != nil {
+			errCh <- err
+		}
+		close(errCh)
+	}()
 	// display a little countdown sequence for user
 	if err := countdownSequence(ctx, display); err != nil {
+		return err
+	}
+
+	if err := <-errCh; err != nil {
 		return err
 	}
 
