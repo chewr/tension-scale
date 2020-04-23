@@ -3,11 +3,12 @@ package isometric
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/conn/physic"
-	"time"
 )
 
 func MaxTest(hold time.Duration) Workout {

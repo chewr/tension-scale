@@ -1,10 +1,11 @@
 package testhang
 
 import (
+	"time"
+
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 var testCmd = &cobra.Command{

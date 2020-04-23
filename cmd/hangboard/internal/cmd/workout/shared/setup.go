@@ -1,12 +1,14 @@
 package shared
 
 import (
-	"github.com/chewr/tension-scale/hx711"
-	"github.com/chewr/tension-scale/isometric"
-	"github.com/chewr/tension-scale/led"
-	"github.com/chewr/tension-scale/loadcell"
 	"os"
 	"path/filepath"
+
+	"github.com/chewr/tension-scale/hx711"
+	"github.com/chewr/tension-scale/isometric"
+	"github.com/chewr/tension-scale/isometric/data"
+	"github.com/chewr/tension-scale/led"
+	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/host/rpi"
 )
 
@@ -35,5 +37,5 @@ func SetupOutput() (isometric.WorkoutRecorder, error) {
 	if err != nil {
 		return nil, err
 	}
-	return isometric.NewCsvFileRecorder(filepath.Join(homedir, defaultOutputDir))
+	return data.CsvRecorder(filepath.Join(homedir, defaultOutputDir))
 }
