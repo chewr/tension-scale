@@ -19,7 +19,9 @@ type cliRecorder struct {
 }
 
 func CliRecorder(cmd *cobra.Command) isometric.WorkoutRecorder {
-	return &cliRecorder{}
+	return &cliRecorder{
+		cmd: cmd,
+	}
 }
 
 func (r *cliRecorder) Start(ctx context.Context, descriptor string) (isometric.WorkoutUpdater, error) {
