@@ -33,7 +33,10 @@ func (s *hx711Sensor) Tare(ctx context.Context, samples int) error {
 	var total int64 = 0
 	for i := 0; i < samples; i++ {
 		r, err := s.hx.Read(ctx)
-		if err != nil {
+		switch err {
+		case nil:
+		case hx711.ErrBadRead:
+		default:
 			return err
 		}
 		total += int64(r.Raw)
