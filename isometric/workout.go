@@ -100,6 +100,8 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 		case nil: // continue processing
 		case hx711.ErrBadRead:
 			continue // drop a bad reading and continue
+		case context.DeadlineExceeded:
+			return updater.Finish(Failure)
 		default:
 			return err
 		}

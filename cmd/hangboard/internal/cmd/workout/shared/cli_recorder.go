@@ -70,7 +70,7 @@ func (u *cliWorkoutRecorderUpdater) Finish(outcome isometric.WorkoutOutcome) err
 	maxForce12s := maxThresholdForceOverInterval(12*time.Second, u.samples)
 
 	sb := new(strings.Builder)
-	sb.WriteString(fmt.Sprintf("%s:\n", u.name))
+	sb.WriteString(fmt.Sprintf("%s: %s\n", u.name, outcome))
 	sb.WriteString(fmt.Sprintf("Peak Force: %s\n", peakForce.String()))
 	sb.WriteString(fmt.Sprintf("RFD: %d ms\n", rfd/time.Millisecond))
 	if maxForce3s >= physic.Newton {
