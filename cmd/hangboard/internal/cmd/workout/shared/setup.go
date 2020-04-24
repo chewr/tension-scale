@@ -1,7 +1,12 @@
-package maxhang
+package shared
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/chewr/tension-scale/hx711"
+	"github.com/chewr/tension-scale/isometric"
+	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/host/rpi"
@@ -24,4 +29,13 @@ func SetupLoadCell() (loadcell.Sensor, error) {
 		return nil, err
 	}
 	return loadcell.NewHx711(hx, loadcell.TrueSun400Slow), nil
+}
+
+func SetupOutput() (isometric.WorkoutRecorder, error) {
+	const defaultOutputDir = "Documents/workouts"
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	return data.CsvRecorder(filepath.Join(homedir, defaultOutputDir))
 }

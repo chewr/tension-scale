@@ -1,6 +1,8 @@
 package maxhang
 
 import (
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/workout/maxhang"
 	"github.com/spf13/cobra"
 	"periph.io/x/periph/conn/physic"
@@ -42,28 +44,39 @@ func AddCommands(rootCmd *cobra.Command) {
 }
 
 func doWorkout(cmd *cobra.Command, args []string) error {
-	threshold, err := cmd.Flags().GetInt64(flagThreshold)
+	threshold, err := cmd.Flags().GetString(flagThreshold)
 	if err != nil {
+		return err
+	}
+	f := new(physic.Force)
+	if err := f.Set(threshold); err != nil {
 		return err
 	}
 	week, err := cmd.Flags().GetInt(flagWeek)
 	if err != nil {
 		return err
 	}
-	workout, err := maxhang.MaxHangWorkout(maxhang.Week(week), physic.Force(threshold)*physic.PoundForce)
+	maxHangWorkout, err := maxhang.MaxHangWorkout(maxhang.Week(week), *f)
 	if err != nil {
 		return err
 	}
-	display, err := SetupDisplay()
+	display, err := shared.SetupDisplay()
 	if err != nil {
 		return err
 	}
-	loadCell, err := SetupLoadCell()
+	loadCell, err := shared.SetupLoadCell()
 	if err != nil {
 		return err
 	}
 	if err := loadCell.Tare(cmd.Context(), 20); err != nil {
 		return err
 	}
-	return workout.Run(cmd.Context(), display, loadCell)
+	fileRecorder, err := shared.SetupOutput()
+	if err != nil {
+		return err
+	}
+	cliRecorder := shared.CliRecorder(cmd)
+	recorder := data.MultiRecorder(fileRecorder, cliRecorder)
+
+	return maxHangWorkout.Run(cmd.Context(), display, loadCell, recorder)
 }
