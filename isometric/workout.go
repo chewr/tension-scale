@@ -94,6 +94,24 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 	underTension := false
 	var startTime time.Time
 	for {
+		// update display
+		switch {
+		case underTension:
+			if err := display.GreenOn(); err != nil {
+				return err
+			}
+			if err := display.YellowOff(); err != nil {
+				return err
+			}
+		default:
+			if err := display.GreenOff(); err != nil {
+				return err
+			}
+			if err := display.YellowOn(); err != nil {
+				return err
+			}
+		}
+
 		// Read force
 		r, err := loadCell.Read(ctx)
 		switch err {
@@ -112,26 +130,17 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 		}
 
 		// State machine transitions
-		if r.Force < w.threshold {
-			underTension = false
-			if err := display.GreenOff(); err != nil {
-				return err
-			}
-			if err := display.YellowOn(); err != nil {
-				return err
-			}
-			continue
-		}
-		switch {
-		case underTension:
+		if underTension &&
+			// relax threshold to 75% once already under tension
+			4*r.Force > 3*w.threshold {
 			if r.Time.Sub(startTime) >= w.timeUnderTension && r.Force >= w.threshold {
 				return updater.Finish(Success)
 			}
-		default:
-			underTension = r.Force >= w.threshold
-			startTime = r.Time
-			display.YellowOff()
-			display.GreenOn()
+		} else {
+			underTension = r.Force > w.threshold
+			if underTension { // will be true at first transition only
+				startTime = r.Time
+			}
 		}
 	}
 }
