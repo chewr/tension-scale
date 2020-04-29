@@ -68,7 +68,7 @@ func MaxHangWorkout(week Week, weight physic.Force) (isometric.Workout, error) {
 	}
 	var supersets []isometric.Workout
 	supersets = append(supersets, isometric.SetupInterval(), rep)
-	for i := 0; i < sets; i++ {
+	for i := 1; i < sets; i++ {
 		supersets = append(supersets, isometric.RestInterval(90*time.Second), rep)
 	}
 	return isometric.Composite(supersets...), nil
