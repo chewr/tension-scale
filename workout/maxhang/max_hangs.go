@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/isometric"
+	"github.com/chewr/tension-scale/isometric/interval"
 	"periph.io/x/periph/conn/physic"
 )
 
@@ -28,48 +29,48 @@ func MaxHangWorkout(week Week, weight physic.Force) (isometric.Workout, error) {
 	default:
 		return nil, ErrWeekOutOfRange
 	case Week3:
-		rep = isometric.Composite(
-			isometric.WorkInterval(weight, 3*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 6*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 9*time.Second),
+		rep = interval.Composite(
+			interval.WorkInterval(weight, 3*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 6*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 9*time.Second),
 		)
 		sets = 5
 	case Week2:
-		rep = isometric.Composite(
-			isometric.WorkInterval(weight, 3*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 6*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 9*time.Second),
+		rep = interval.Composite(
+			interval.WorkInterval(weight, 3*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 6*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 9*time.Second),
 		)
 		sets = 4
 	case Week1:
-		rep = isometric.Composite(
-			isometric.WorkInterval(weight, 3*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 6*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 9*time.Second),
+		rep = interval.Composite(
+			interval.WorkInterval(weight, 3*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 6*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 9*time.Second),
 		)
 		sets = 3
 	case Week4:
-		rep = isometric.Composite(
-			isometric.WorkInterval(weight, 3*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 6*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 9*time.Second),
-			isometric.RestInterval(30*time.Second),
-			isometric.WorkInterval(weight, 12*time.Second),
+		rep = interval.Composite(
+			interval.WorkInterval(weight, 3*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 6*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 9*time.Second),
+			interval.RestInterval(30*time.Second),
+			interval.WorkInterval(weight, 12*time.Second),
 		)
 		sets = 3
 	}
 	var supersets []isometric.Workout
-	supersets = append(supersets, isometric.SetupInterval(), rep)
+	supersets = append(supersets, interval.SetupInterval(), rep)
 	for i := 1; i < sets; i++ {
-		supersets = append(supersets, isometric.RestInterval(90*time.Second), rep)
+		supersets = append(supersets, interval.RestInterval(90*time.Second), rep)
 	}
-	return isometric.Composite(supersets...), nil
+	return interval.Composite(supersets...), nil
 }

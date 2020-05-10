@@ -1,4 +1,4 @@
-package isometric
+package interval
 
 import (
 	"context"
@@ -8,11 +8,12 @@ import (
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/hx711"
+	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/conn/physic"
 )
 
-func MaxTest(hold time.Duration) Workout {
+func MaxTest(hold time.Duration) isometric.Workout {
 	return maxTest(hold)
 }
 
@@ -21,7 +22,7 @@ type maxTest time.Duration
 func (t maxTest) String() string {
 	return fmt.Sprintf("max-test-%v", time.Duration(t))
 }
-func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
+func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder isometric.WorkoutRecorder) error {
 	defer model.UpdateState(state.Halt())
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(t)*3)
 	defer cancel()
@@ -57,7 +58,7 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 		sw.update(r)
 		if sw.ready() {
 			if trueMax > sw.maxForce() {
-				return updater.Finish(Success)
+				return updater.Finish(isometric.Success)
 			}
 		}
 	}
