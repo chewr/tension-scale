@@ -24,3 +24,19 @@ type Sensor interface {
 	Halt() error
 	Read(ctx context.Context) (ForceSample, error)
 }
+
+func TryReadIgnoreErrors(ctx context.Context, sensor Sensor, ignore ...error) (ForceSample, error) {
+	ignores := make(map[error]struct{})
+	for _, e := range ignore {
+		ignores[e] = struct{}{}
+	}
+	for {
+		r, err := sensor.Read(ctx)
+		if err != nil {
+			if _, ok := ignores[err]; ok {
+				continue
+			}
+		}
+		return r, err
+	}
+}

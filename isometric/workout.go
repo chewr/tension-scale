@@ -171,12 +171,8 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 		return err
 	}
 	for {
-		fs, err := loadCell.Read(ctx)
-		switch err {
-		case nil: // continue processing
-		case hx711.ErrBadRead:
-			continue // drop a bad reading and continue
-		default:
+		fs, err := loadcell.TryReadIgnoreErrors(ctx, loadCell, hx711.ErrBadRead)
+		if err != nil {
 			return err
 		}
 		if fs.Force >= 20*physic.PoundForce {

@@ -42,12 +42,8 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 	trueMax := physic.Force(0)
 	for {
 		// Read force
-		r, err := loadCell.Read(ctx)
-		switch err {
-		case nil: // continue processing
-		case hx711.ErrBadRead:
-			continue // drop a bad reading and continue
-		default:
+		r, err := loadcell.TryReadIgnoreErrors(ctx, loadCell, hx711.ErrBadRead)
+		if err != nil {
 			return err
 		}
 
