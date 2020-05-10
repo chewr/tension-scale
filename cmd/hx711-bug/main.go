@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/chewr/tension-scale/errutil"
 	"periph.io/x/periph/experimental/devices/hx711"
 	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/rpi"
@@ -28,7 +29,7 @@ func mainE() error {
 		return err
 	}
 
-	time.AfterFunc(10*time.Second, func() { hx.Halt() })
+	time.AfterFunc(10*time.Second, func() { errutil.PanicOnErr(hx.Halt()) })
 
 	sampleCh := hx.ReadContinuous()
 	for s := range sampleCh {

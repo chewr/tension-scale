@@ -7,6 +7,7 @@ import (
 
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/display/state"
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/loadcell"
@@ -23,7 +24,7 @@ func (t maxTest) String() string {
 	return fmt.Sprintf("max-test-%v", time.Duration(t))
 }
 func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder isometric.WorkoutRecorder) error {
-	defer model.UpdateState(state.Halt())
+	defer errutil.SwallowF(func() error { return model.UpdateState(state.Halt()) })
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(t)*3)
 	defer cancel()
 

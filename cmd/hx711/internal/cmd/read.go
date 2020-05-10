@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/hx711/backcompat"
 	"github.com/spf13/cobra"
@@ -81,7 +82,7 @@ func doRead(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	sp.Start(ctx)
-	defer sp.Stop()
+	defer errutil.SwallowF(func() error { return sp.Stop() })
 
 	return consume(ctx, cmd, sp)
 }
@@ -144,7 +145,7 @@ func (p *continuousSampleProducer) Start(ctx context.Context) {
 	p.ch = outCh
 	go func() {
 		<-ctx.Done()
-		p.Stop()
+		errutil.PanicOnErr(p.Stop())
 	}()
 }
 

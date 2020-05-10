@@ -2,6 +2,7 @@ package maxhang
 
 import (
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/workout/maxhang"
 	"github.com/spf13/cobra"
@@ -39,7 +40,7 @@ https://www.climbstrong.com/education-center/making-sense-hangboard-programs/
 }
 
 func AddCommands(rootCmd *cobra.Command) {
-	flags(maxHangCmd)
+	errutil.PanicOnErr(flags(maxHangCmd))
 	rootCmd.AddCommand(maxHangCmd)
 }
 

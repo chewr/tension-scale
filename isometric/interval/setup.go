@@ -7,6 +7,7 @@ import (
 
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/display/state"
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/loadcell"
@@ -26,7 +27,7 @@ func (s setupInterval) String() string {
 func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, _ isometric.WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
 	defer cancel()
-	defer model.UpdateState(state.Halt())
+	defer errutil.SwallowF(func() error { return model.UpdateState(state.Halt()) })
 
 	if err := model.UpdateState(state.Tare()); err != nil {
 		return err

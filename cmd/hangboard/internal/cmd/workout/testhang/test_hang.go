@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/isometric/interval"
 	"github.com/spf13/cobra"
@@ -19,7 +20,7 @@ var testCmd = &cobra.Command{
 }
 
 func AddCommands(rootCmd *cobra.Command) {
-	flags(testCmd)
+	errutil.PanicOnErr(flags(testCmd))
 	rootCmd.AddCommand(testCmd)
 }
 
