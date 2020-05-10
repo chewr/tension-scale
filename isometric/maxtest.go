@@ -22,7 +22,7 @@ func (t maxTest) String() string {
 	return fmt.Sprintf("max-test-%v", time.Duration(t))
 }
 func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
-	defer model.UpdateState(state.Off)
+	defer model.UpdateState(state.Halt())
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(t)*3)
 	defer cancel()
 
@@ -32,7 +32,7 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 	}
 	defer updater.Close()
 
-	if err := model.UpdateState(state.Waiting); err != nil {
+	if err := model.UpdateState(state.Wait()); err != nil {
 		return err
 	}
 

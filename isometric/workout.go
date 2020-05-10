@@ -38,7 +38,7 @@ func (r restInterval) Run(ctx context.Context, model display.Model, _ loadcell.S
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
-	if err := model.UpdateState(state.Resting); err != nil {
+	if err := model.UpdateState(state.Rest()); err != nil {
 		return err
 	}
 
@@ -65,10 +65,10 @@ func (w workInterval) String() string {
 }
 
 func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
-	defer model.UpdateState(state.Off)
+	defer model.UpdateState(state.Halt())
 
 	// Tare + setup
-	if err := model.UpdateState(state.Taring); err != nil {
+	if err := model.UpdateState(state.Tare()); err != nil {
 		return err
 	}
 	time.Sleep(2 * time.Second)
@@ -79,7 +79,7 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
 
-	if err := model.UpdateState(state.Waiting); err != nil {
+	if err := model.UpdateState(state.Wait()); err != nil {
 		return err
 	}
 
@@ -95,11 +95,11 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 		// update model
 		switch {
 		case underTension:
-			if err := model.UpdateState(state.PullingHardEnough); err != nil {
+			if err := model.UpdateState(state.Work()); err != nil {
 				return err
 			}
 		default:
-			if err := model.UpdateState(state.Waiting); err != nil {
+			if err := model.UpdateState(state.Wait()); err != nil {
 				return err
 			}
 		}
@@ -157,9 +157,9 @@ func (s setupInterval) String() string {
 func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
 	defer cancel()
-	defer model.UpdateState(state.Off)
+	defer model.UpdateState(state.Halt())
 
-	if err := model.UpdateState(state.Taring); err != nil {
+	if err := model.UpdateState(state.Tare()); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Second)
@@ -167,7 +167,7 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 		return err
 	}
 
-	if err := model.UpdateState(state.Waiting); err != nil {
+	if err := model.UpdateState(state.Wait()); err != nil {
 		return err
 	}
 	for {

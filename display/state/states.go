@@ -4,11 +4,22 @@ import (
 	"github.com/chewr/tension-scale/display"
 )
 
-var (
-	Waiting                 display.State = nil
-	Taring                  display.State = nil
-	Resting                 display.State = nil
-	PullingHardEnough       display.State = nil
-	PullingButNotHardEnough display.State = nil
-	Off                     display.State = nil
-)
+func Wait() display.State {
+	return nil
+}
+
+func Tare() display.State {
+	return nil
+}
+
+func Rest() display.State {
+	return nil
+}
+
+func Halt() display.State {
+	return nil
+}
+
+func Work() display.State {
+	return nil
+}
