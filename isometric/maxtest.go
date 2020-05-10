@@ -32,7 +32,7 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 	}
 	defer updater.Close()
 
-	if err := model.UpdateState(state.Wait()); err != nil {
+	if err := model.UpdateState(state.WaitForInput()); err != nil {
 		return err
 	}
 

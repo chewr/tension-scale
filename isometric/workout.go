@@ -79,7 +79,7 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
 
-	if err := model.UpdateState(state.Wait()); err != nil {
+	if err := model.UpdateState(state.WaitForInput()); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 				return err
 			}
 		default:
-			if err := model.UpdateState(state.Wait()); err != nil {
+			if err := model.UpdateState(state.WaitForInput()); err != nil {
 				return err
 			}
 		}
@@ -167,7 +167,7 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 		return err
 	}
 
-	if err := model.UpdateState(state.Wait()); err != nil {
+	if err := model.UpdateState(state.WaitForInput()); err != nil {
 		return err
 	}
 	for {

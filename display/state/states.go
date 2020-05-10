@@ -4,7 +4,7 @@ import (
 	"github.com/chewr/tension-scale/display"
 )
 
-func Wait() display.State {
+func WaitForInput() display.State {
 	return nil
 }
 
