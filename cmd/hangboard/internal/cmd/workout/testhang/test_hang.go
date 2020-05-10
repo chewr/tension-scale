@@ -51,7 +51,7 @@ func doMaxTest(cmd *cobra.Command, args []string) error {
 
 func setupMaxTestWorkout(d time.Duration) isometric.Workout {
 	return interval.Composite(
-		interval.SetupInterval(),
+		interval.SetupInterval(time.Minute),
 		interval.RestInterval(5*time.Second),
 		interval.MaxTest(d),
 		interval.RestInterval(time.Second*5),

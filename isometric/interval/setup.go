@@ -13,8 +13,8 @@ import (
 	"periph.io/x/periph/conn/physic"
 )
 
-func SetupInterval() isometric.Workout {
-	return setupInterval(time.Minute)
+func SetupInterval(duration time.Duration) isometric.Workout {
+	return setupInterval(duration)
 }
 
 type setupInterval time.Duration

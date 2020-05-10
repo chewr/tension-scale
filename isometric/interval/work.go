@@ -13,8 +13,6 @@ import (
 	"periph.io/x/periph/conn/physic"
 )
 
-var _ isometric.Workout = &workInterval{}
-
 type workInterval struct {
 	threshold        physic.Force
 	timeUnderTension time.Duration

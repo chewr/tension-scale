@@ -11,8 +11,6 @@ import (
 	"github.com/chewr/tension-scale/loadcell"
 )
 
-var _ isometric.Workout = new(restInterval)
-
 type restInterval time.Duration
 
 func (r restInterval) String() string {

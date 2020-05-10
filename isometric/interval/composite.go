@@ -9,8 +9,6 @@ import (
 	"github.com/chewr/tension-scale/loadcell"
 )
 
-var _ isometric.Workout = composite{}
-
 type composite []isometric.Workout
 
 func (c composite) String() string {
