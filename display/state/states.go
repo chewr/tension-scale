@@ -1,6 +1,8 @@
 package state
 
-import "github.com/chewr/tension-scale/display"
+import (
+	"github.com/chewr/tension-scale/display"
+)
 
 var (
 	Waiting                 display.State = nil
@@ -8,4 +10,5 @@ var (
 	Resting                 display.State = nil
 	PullingHardEnough       display.State = nil
 	PullingButNotHardEnough display.State = nil
+	Off                     display.State = nil
 )

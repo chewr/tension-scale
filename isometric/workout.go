@@ -6,8 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/hx711"
-	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/conn/physic"
 )
@@ -22,7 +23,7 @@ const (
 
 type Workout interface {
 	fmt.Stringer
-	Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error
+	Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error
 }
 
 var _ Workout = new(restInterval)
@@ -33,12 +34,13 @@ func (r restInterval) String() string {
 	return fmt.Sprintf("rest-%v", time.Duration(r))
 }
 
-func (r restInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
+func (r restInterval) Run(ctx context.Context, model display.Model, _ loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
-	display.RedOn()
-	defer display.RedOff()
+	if err := model.UpdateState(state.Resting); err != nil {
+		return err
+	}
 
 	<-ctx.Done()
 	return nil
@@ -62,28 +64,24 @@ func (w workInterval) String() string {
 	)
 }
 
-func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
-	defer display.RedOff()
-	defer display.GreenOff()
-	defer display.YellowOff()
+func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
+	defer model.UpdateState(state.Off)
 
 	// Tare + setup
-	if err := display.RedOn(); err != nil {
-		return err
-	}
-	if err := display.YellowOn(); err != nil {
+	if err := model.UpdateState(state.Taring); err != nil {
 		return err
 	}
 	time.Sleep(2 * time.Second)
 	if err := loadCell.Tare(ctx, 20); err != nil {
 		return err
 	}
-	if err := display.RedOff(); err != nil {
-		return err
-	}
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
+
+	if err := model.UpdateState(state.Waiting); err != nil {
+		return err
+	}
 
 	updater, err := recorder.Start(ctx, w.String())
 	if err != nil {
@@ -94,20 +92,14 @@ func (w workInterval) Run(ctx context.Context, display *led.TrafficLight, loadCe
 	underTension := false
 	var startTime time.Time
 	for {
-		// update display
+		// update model
 		switch {
 		case underTension:
-			if err := display.GreenOn(); err != nil {
-				return err
-			}
-			if err := display.YellowOff(); err != nil {
+			if err := model.UpdateState(state.PullingHardEnough); err != nil {
 				return err
 			}
 		default:
-			if err := display.GreenOff(); err != nil {
-				return err
-			}
-			if err := display.YellowOn(); err != nil {
+			if err := model.UpdateState(state.Waiting); err != nil {
 				return err
 			}
 		}
@@ -162,33 +154,22 @@ func (s setupInterval) String() string {
 	return fmt.Sprintf("setup-%v", time.Duration(s))
 }
 
-func (s setupInterval) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
+func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, _ WorkoutRecorder) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(s))
 	defer cancel()
-	defer display.YellowOff()
-	defer display.RedOff()
+	defer model.UpdateState(state.Off)
 
-	if err := display.RedOn(); err != nil {
-		return err
-	}
-	if err := display.YellowOn(); err != nil {
+	if err := model.UpdateState(state.Taring); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Second)
-
-	if err := display.RedOff(); err != nil {
-		return err
-	}
 	if err := loadCell.Tare(ctx, 40); err != nil {
 		return err
 	}
 
-	go func() {
-		done := led.Blink(display.YellowOn, display.YellowOff, time.Second/4)
-		defer close(done)
-		<-ctx.Done()
-	}()
-
+	if err := model.UpdateState(state.Waiting); err != nil {
+		return err
+	}
 	for {
 		fs, err := loadCell.Read(ctx)
 		switch err {
@@ -218,14 +199,14 @@ func (c composite) String() string {
 	return strings.Join(s, ",")
 }
 
-func (c composite) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
+func (c composite) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
 	for _, w := range c {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		if err := w.Run(ctx, display, loadCell, recorder); err != nil {
+		if err := w.Run(ctx, model, loadCell, recorder); err != nil {
 			return err
 		}
 	}

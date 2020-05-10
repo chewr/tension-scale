@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/hx711"
-	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
 	"periph.io/x/periph/conn/physic"
 )
@@ -20,8 +21,9 @@ type maxTest time.Duration
 func (t maxTest) String() string {
 	return fmt.Sprintf("max-test-%v", time.Duration(t))
 }
-func (t maxTest) Run(ctx context.Context, display *led.TrafficLight, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(t)*3+countdownSequenceTime)
+func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell.Sensor, recorder WorkoutRecorder) error {
+	defer model.UpdateState(state.Off)
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(t)*3)
 	defer cancel()
 
 	updater, err := recorder.Start(ctx, t.String())
@@ -30,30 +32,9 @@ func (t maxTest) Run(ctx context.Context, display *led.TrafficLight, loadCell lo
 	}
 	defer updater.Close()
 
-	errCh := make(chan error)
-	go func() {
-		time.Sleep(2 * time.Second)
-		if err := loadCell.Tare(ctx, 20); err != nil {
-			errCh <- err
-		}
-		close(errCh)
-	}()
-	// display a little countdown sequence for user
-	if err := countdownSequence(ctx, display); err != nil {
+	if err := model.UpdateState(state.Waiting); err != nil {
 		return err
 	}
-
-	if err := <-errCh; err != nil {
-		return err
-	}
-
-	// lights on!
-	if err := display.GreenOn(); err != nil {
-		return err
-	}
-	defer display.GreenOff()
-	defer display.YellowOff()
-	defer display.RedOff()
 
 	sw := &slidingWindow{
 		dur: time.Duration(t),
@@ -110,61 +91,4 @@ func (w *slidingWindow) maxForce() physic.Force {
 		}
 	}
 	return m
-}
-
-const countdownSequenceTime = time.Second * 5
-
-func countdownSequence(ctx context.Context, display *led.TrafficLight) error {
-	// setup - shut everything down
-	if err := display.RedOff(); err != nil {
-		return err
-	}
-	if err := display.YellowOff(); err != nil {
-		return err
-	}
-	if err := display.GreenOff(); err != nil {
-		return err
-	}
-	defer display.GreenOff()
-	defer display.YellowOff()
-	defer display.RedOff()
-
-	// hold red for two seconds
-	if err := display.RedOn(); err != nil {
-		return err
-	}
-	time.Sleep(2 * time.Second)
-
-	// blink yellow slowly for two seconds
-	for i := 0; i < 3; i++ {
-		if err := display.YellowOn(); err != nil {
-			return err
-		}
-		time.Sleep(125 * time.Millisecond)
-		if err := display.YellowOff(); err != nil {
-			return err
-		}
-		time.Sleep(375 * time.Millisecond)
-	}
-
-	// blink yellow quickly for one second
-	for i := 0; i < 3; i++ {
-		if err := display.YellowOn(); err != nil {
-			return err
-		}
-		time.Sleep(125 * time.Millisecond)
-		if err := display.YellowOff(); err != nil {
-			return err
-		}
-		time.Sleep(125 * time.Millisecond)
-	}
-
-	// for the last second, hold yellow only
-	if err := display.RedOff(); err != nil {
-		return err
-	}
-	ch := led.Blink(display.YellowOn, display.YellowOff, time.Second/16)
-	time.Sleep(time.Second)
-	close(ch)
-	return nil
 }
