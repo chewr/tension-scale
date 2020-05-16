@@ -1,3 +1,5 @@
+// Package cmd implements the hangboard command for running
+// a load cell hangboard
 /*
 Copyright © 2020 NAME HERE <EMAIL ADDRESS>
 

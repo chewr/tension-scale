@@ -1,3 +1,5 @@
+// Package cmd implements the hx711 command for interacting
+// with the load cell amplifier
 /*
 Copyright © 2020 Richard Chew
 
