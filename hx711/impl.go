@@ -8,7 +8,6 @@ import (
 
 	"github.com/chewr/tension-scale/measurement"
 	"periph.io/x/periph/conn/gpio"
-	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/conn/analog"
 )
 
@@ -21,8 +20,6 @@ const (
 	t3            = time.Microsecond      // T_3 typical pd_sck high time
 	t4            = time.Microsecond      // T_4 typical pd_sck low time
 	powerDownTime = 60 * time.Microsecond // time to hold pd_sck at HIGH to signal power down
-
-	maxSampleRate = physic.Frequency(80 * physic.Hertz)
 )
 
 var (
