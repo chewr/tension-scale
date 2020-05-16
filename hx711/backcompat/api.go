@@ -8,6 +8,8 @@ import (
 )
 
 // deprecated, use V2 instead
+// HX711 replicates the interface of the periph.io driver for the
+// HX711 load cell amplifier
 type HX711 interface {
 	analog.PinADC
 	ReadContinuous() <-chan analog.Sample

@@ -31,17 +31,17 @@ var (
 )
 
 var (
-	PIN_HX711_SCLK = rpi.P1_31 // GPIO6
-	PIN_HX711_DOUT = rpi.P1_29 // GPIO5
+	sclk = rpi.P1_31 // GPIO6
+	dout = rpi.P1_29 // GPIO5
 )
 
 func loadHx711(cmd *cobra.Command) (backcompat.HX711, error) {
 	if viper.GetBool(flagUsePeriphImplementation) {
 		cmd.Println("Using periph hx711 driver implementation")
-		return periphimpl.New(PIN_HX711_SCLK, PIN_HX711_DOUT)
+		return periphimpl.New(sclk, dout)
 	}
 	cmd.Println("Using custom hx711 driver implementation")
-	hxv2, err := hx711.New(PIN_HX711_SCLK, PIN_HX711_DOUT)
+	hxv2, err := hx711.New(sclk, dout)
 	if err != nil {
 		return nil, err
 	}
