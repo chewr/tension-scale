@@ -57,7 +57,7 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	maxHangWorkout, err := maxhang.MaxHangWorkout(maxhang.Week(week), *f)
+	maxHangWorkout, err := maxhang.Workout(maxhang.Week(week), *f)
 	if err != nil {
 		return err
 	}

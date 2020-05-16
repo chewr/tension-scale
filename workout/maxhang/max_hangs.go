@@ -20,7 +20,7 @@ const (
 
 var ErrWeekOutOfRange = errors.New("week out of range: max hangs are a four week cycle")
 
-func MaxHangWorkout(week Week, weight physic.Force) (isometric.Workout, error) {
+func Workout(week Week, weight physic.Force) (isometric.Workout, error) {
 	var (
 		rep  isometric.Workout
 		sets int

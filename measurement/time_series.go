@@ -33,11 +33,11 @@ type TimeSeriesSample struct {
 	time.Time
 }
 
-const RING_BUFFER_SIZE = 32
+const ringBufferLen = 32
 
 type TimeSeriesBuffer struct {
 	sync.Mutex
-	samples    [RING_BUFFER_SIZE]TimeSeriesSample
+	samples    [ringBufferLen]TimeSeriesSample
 	rptr, wptr int
 	ready      bool
 }
@@ -46,11 +46,11 @@ func (b *TimeSeriesBuffer) Write(s TimeSeriesSample) {
 	b.Lock()
 	defer b.Unlock()
 	if b.wptr == b.rptr && b.ready {
-		b.rptr = (b.rptr + 1) % RING_BUFFER_SIZE
+		b.rptr = (b.rptr + 1) % ringBufferLen
 	}
 	b.samples[b.wptr] = s
 	b.ready = true
-	b.wptr = (b.wptr + 1) % RING_BUFFER_SIZE
+	b.wptr = (b.wptr + 1) % ringBufferLen
 }
 
 func (b *TimeSeriesBuffer) Read() (TimeSeriesSample, bool) {
@@ -60,7 +60,7 @@ func (b *TimeSeriesBuffer) Read() (TimeSeriesSample, bool) {
 		return TimeSeriesSample{}, false
 	}
 	ts := b.samples[b.rptr]
-	b.rptr = (b.rptr + 1) % RING_BUFFER_SIZE
+	b.rptr = (b.rptr + 1) % ringBufferLen
 	b.ready = b.rptr != b.wptr
 	return ts, true
 }
@@ -71,13 +71,13 @@ func (b *TimeSeriesBuffer) ReadAll() []TimeSeriesSample {
 	if !b.ready {
 		return nil
 	}
-	sz := ((b.rptr + RING_BUFFER_SIZE) - b.wptr) % RING_BUFFER_SIZE
+	sz := ((b.rptr + ringBufferLen) - b.wptr) % ringBufferLen
 	dt := make([]TimeSeriesSample, sz)
 	for i := range dt {
-		idx := (b.rptr + i) % RING_BUFFER_SIZE
+		idx := (b.rptr + i) % ringBufferLen
 		dt[i] = b.samples[idx]
 	}
-	b.rptr = (b.rptr + sz) % RING_BUFFER_SIZE
+	b.rptr = (b.rptr + sz) % ringBufferLen
 	b.ready = false
 	return dt
 }

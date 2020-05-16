@@ -18,8 +18,8 @@ func ForceReceived(f physic.Force) Received {
 
 type Edge display.UserInput
 
-// TODO(rchew) specify min rising edge size?
 // RisingEdge indicates a rising edge force input
 func RisingEdge() Edge {
+	// TODO(rchew) specify min rising edge size?
 	return nil
 }
