@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/input"
 	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
@@ -34,7 +35,8 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 	}
 	defer updater.Close()
 
-	if err := model.UpdateState(state.WaitForInput()); err != nil {
+	// TODO(rchew) this should actually detect and be satisfied by a rising edge
+	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(), input.None())); err != nil {
 		return err
 	}
 

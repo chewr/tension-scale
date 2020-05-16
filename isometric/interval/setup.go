@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/input"
 	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
@@ -29,15 +30,19 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 	defer cancel()
 	defer errutil.SwallowF(func() error { return model.UpdateState(state.Halt()) })
 
-	if err := model.UpdateState(state.Tare()); err != nil {
+	tareDur := 5 * time.Second
+	done := time.After(tareDur)
+	if err := model.UpdateState(state.Tare(tareDur)); err != nil {
 		return err
 	}
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Second)
 	if err := loadCell.Tare(ctx, 40); err != nil {
 		return err
 	}
+	<-done
 
-	if err := model.UpdateState(state.WaitForInput()); err != nil {
+	// TODO(rchew) make this actually wait for a rising edge
+	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(), input.None())); err != nil {
 		return err
 	}
 	for {

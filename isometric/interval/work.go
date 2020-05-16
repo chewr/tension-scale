@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/input"
 	"github.com/chewr/tension-scale/display/state"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/hx711"
@@ -30,18 +31,21 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 	defer errutil.SwallowF(func() error { return model.UpdateState(state.Halt()) })
 
 	// Tare + setup
-	if err := model.UpdateState(state.Tare()); err != nil {
+	tareDur := 2 * time.Second
+	if err := model.UpdateState(state.Tare(tareDur)); err != nil {
 		return err
 	}
-	time.Sleep(2 * time.Second)
+	done := time.After(tareDur)
+	time.Sleep(time.Second)
 	if err := loadCell.Tare(ctx, 20); err != nil {
 		return err
 	}
+	<-done
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
 	defer cancel()
 
-	if err := model.UpdateState(state.WaitForInput()); err != nil {
+	if err := model.UpdateState(state.WaitForInput(input.ForceRequired(w.threshold), input.None())); err != nil {
 		return err
 	}
 
@@ -54,18 +58,6 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 	underTension := false
 	var startTime time.Time
 	for {
-		// update model
-		switch {
-		case underTension:
-			if err := model.UpdateState(state.Work()); err != nil {
-				return err
-			}
-		default:
-			if err := model.UpdateState(state.WaitForInput()); err != nil {
-				return err
-			}
-		}
-
 		// Read force
 		r, err := loadCell.Read(ctx)
 		switch err {
@@ -83,18 +75,35 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 			return err
 		}
 
-		// State machine transitions
-		if underTension &&
-			// relax threshold to 75% once already under tension
-			4*r.Force > 3*w.threshold {
-			if r.Time.Sub(startTime) >= w.timeUnderTension && r.Force >= w.threshold {
-				return updater.Finish(isometric.Success)
-			}
+		// Start clock once threshold is passed
+		if !underTension && r.Force > w.threshold {
+			underTension = true
+			startTime = r.Time
+		}
+
+		// Loop branch control
+		// this is done before updating model state to avoid negative durations
+		if underTension && time.Now().Sub(startTime) > w.timeUnderTension {
+			return updater.Finish(isometric.Success)
+		}
+
+		// Update model state
+		var currentState display.State
+		if underTension {
+			currentState = state.Work(
+				input.ForceRequired(w.threshold),
+				input.ForceReceived(r.Force),
+				w.timeUnderTension-(time.Now().Sub(startTime)),
+			)
 		} else {
-			underTension = r.Force > w.threshold
-			if underTension { // will be true at first transition only
-				startTime = r.Time
-			}
+			currentState = state.WaitForInput(
+				input.ForceRequired(w.threshold),
+				input.ForceReceived(r.Force),
+			)
+		}
+
+		if err := model.UpdateState(currentState); err != nil {
+			return err
 		}
 	}
 }
