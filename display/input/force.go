@@ -6,8 +6,8 @@ import (
 )
 
 // TODO(rchew) implement
-type Required display.UserInput
-type Received display.UserInput
+type Required display.ExpectedInput
+type Received display.ActualInput
 
 func ForceRequired(f physic.Force) Required {
 	// TODO(rchew) implement

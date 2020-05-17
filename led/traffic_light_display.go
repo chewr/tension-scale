@@ -16,7 +16,7 @@ type trafficLightDisplay struct {
 	leds         *trafficLight
 }
 
-func NewTrafficLightDisplay(grn, ylw, red gpio.PinOut) (display.RunningModel, error) {
+func NewTrafficLightDisplay(grn, ylw, red gpio.PinOut) (display.AutoRefreshingModel, error) {
 	if err := grn.Out(gpio.Low); err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (d *trafficLightDisplay) UpdateState(state display.State) error {
 
 const ledRefreshRate = 10 * time.Millisecond
 
-func (d *trafficLightDisplay) Run(ctx context.Context) {
+func (d *trafficLightDisplay) Start(ctx context.Context) {
 	t := time.NewTicker(ledRefreshRate)
 	defer t.Stop()
 	for range t.C {

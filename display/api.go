@@ -5,7 +5,14 @@ import (
 	"time"
 )
 
-type AbstractState interface{}
+type AbstractState interface {
+	// TODO(rchew) decide if this is necessary
+	noImplementAbstractState()
+}
+
+type baseAbstractState struct{}
+
+func (baseAbstractState) noImplementAbstractState() {}
 
 type State interface {
 	AbstractState
@@ -15,8 +22,8 @@ type State interface {
 
 type InputDependentState interface {
 	AbstractState
-	InputRequired() UserInput
-	InputReceived() UserInput
+	InputRequired() ExpectedInput
+	InputReceived() ActualInput
 	Satisfied() bool
 }
 
@@ -26,13 +33,29 @@ type ExpiringState interface {
 	Fallback() State
 }
 
-type UserInput interface{}
+type UserInput interface {
+	// TODO(rchew) decide if this is necessary
+	noImplementUserInput()
+}
+
+type baseUserInput struct{}
+
+func (baseUserInput) noImplementUserInput() {}
+
+type ExpectedInput interface {
+	UserInput
+}
+
+type ActualInput interface {
+	UserInput
+	Satisfies(input ExpectedInput) bool
+}
 
 type Model interface {
 	UpdateState(state State) error
 }
 
-type RunningModel interface {
+type AutoRefreshingModel interface {
 	Model
-	Run(ctx context.Context)
+	Start(ctx context.Context)
 }
