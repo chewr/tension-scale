@@ -5,5 +5,6 @@ import (
 )
 
 func None() display.UserInput {
+	// TODO(rchew) implement
 	return nil
 }

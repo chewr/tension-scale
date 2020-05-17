@@ -5,14 +5,17 @@ import (
 	"periph.io/x/periph/conn/physic"
 )
 
+// TODO(rchew) implement
 type Required display.UserInput
 type Received display.UserInput
 
 func ForceRequired(f physic.Force) Required {
+	// TODO(rchew) implement
 	return nil
 }
 
 func ForceReceived(f physic.Force) Received {
+	// TODO(rchew) implement
 	return nil
 }
 
