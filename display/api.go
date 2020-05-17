@@ -34,13 +34,7 @@ type ExpiringState interface {
 }
 
 type UserInput interface {
-	// TODO(rchew) decide if this is necessary
-	noImplementUserInput()
 }
-
-type baseUserInput struct{}
-
-func (baseUserInput) noImplementUserInput() {}
 
 type ExpectedInput interface {
 	UserInput
