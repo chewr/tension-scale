@@ -4,7 +4,14 @@ import (
 	"github.com/chewr/tension-scale/display"
 )
 
-func None() display.UserInput {
-	// TODO(rchew) implement
-	return nil
+type functionalUserInput func(display.ExpectedInput) bool
+
+func (fn functionalUserInput) Satisfies(input display.ExpectedInput) bool {
+	return fn(input)
+}
+
+func None() display.ActualInput {
+	return functionalUserInput(func(_ display.ExpectedInput) bool {
+		return false
+	})
 }

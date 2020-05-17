@@ -1,28 +1,59 @@
 package input
 
 import (
+	"sync"
+
 	"github.com/chewr/tension-scale/display"
 	"periph.io/x/periph/conn/physic"
 )
 
-// TODO(rchew) implement
-type Required display.ExpectedInput
-type Received display.ActualInput
-
-func ForceRequired(f physic.Force) Required {
-	// TODO(rchew) implement
-	return nil
+type ForceInput interface {
+	display.ExpectedInput
+	getForce() physic.Force
 }
 
-func ForceReceived(f physic.Force) Received {
-	// TODO(rchew) implement
-	return nil
+type instantaneousForceInputImpl struct {
+	f physic.Force
 }
 
-type Edge display.UserInput
+func (input *instantaneousForceInputImpl) getForce() physic.Force {
+	return input.f
+}
 
-// RisingEdge indicates a rising edge force input
-func RisingEdge() Edge {
-	// TODO(rchew) specify min rising edge size?
-	return nil
+func (input *instantaneousForceInputImpl) Satisfies(expectedInput display.ExpectedInput) bool {
+	if expected, ok := expectedInput.(ForceInput); ok {
+		return input.getForce() >= expected.getForce()
+	}
+	return false
+}
+
+var _ display.ActualInput = &DynamicForceInput{}
+
+type DynamicForceInput struct {
+	mu sync.Mutex
+	f  physic.Force
+}
+
+func (input *DynamicForceInput) UpdatingForceInput(f physic.Force) {
+	input.mu.Lock()
+	defer input.mu.Unlock()
+	input.f = f
+}
+
+func (input *DynamicForceInput) Satisfies(expected display.ExpectedInput) bool {
+	input.mu.Lock()
+	defer input.mu.Unlock()
+	if f, ok := expected.(ForceInput); ok {
+		return input.f >= f.getForce()
+	}
+	return false
+}
+
+func ForceRequired(f physic.Force) display.ExpectedInput {
+	return &instantaneousForceInputImpl{f: f}
+}
+
+// Deprecated: use DynamicForceInput instead
+func ForceReceived(f physic.Force) display.ActualInput {
+	return &instantaneousForceInputImpl{f: f}
 }
