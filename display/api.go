@@ -1,6 +1,7 @@
 package display
 
 import (
+	"context"
 	"time"
 )
 
@@ -29,4 +30,9 @@ type UserInput interface{}
 
 type Model interface {
 	UpdateState(state State) error
+}
+
+type RunningModel interface {
+	Model
+	Run(ctx context.Context)
 }

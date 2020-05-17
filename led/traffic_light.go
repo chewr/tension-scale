@@ -1,8 +1,10 @@
 package led
 
 import (
+	"errors"
 	"sync"
 
+	"github.com/chewr/tension-scale/display"
 	"periph.io/x/periph/conn/gpio"
 )
 
@@ -32,4 +34,8 @@ func (l *trafficLight) setColor(c color) error {
 		return err
 	}
 	return nil
+}
+
+func colorFromState(state display.State) (color, error) {
+	return 0, errors.New("State not recognized")
 }
