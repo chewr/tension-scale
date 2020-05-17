@@ -21,7 +21,7 @@ func SetupDisplay() (display.Model, error) {
 	grn := rpi.P1_23
 	ylw := rpi.P1_19
 	red := rpi.P1_21
-	return led.NewTrafficLight(grn, ylw, red)
+	return led.NewTrafficLightDisplay(grn, ylw, red)
 }
 
 func SetupLoadCell() (loadcell.Sensor, error) {
