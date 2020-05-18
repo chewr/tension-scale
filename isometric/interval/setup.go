@@ -42,7 +42,7 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 	<-done
 
 	// TODO(rchew) make this actually wait for a rising edge
-	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(100 * time.Millisecond, 100 * physic.Newton), input.None())); err != nil {
+	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(100*time.Millisecond, 100*physic.Newton), input.None())); err != nil {
 		return err
 	}
 	for {
