@@ -75,6 +75,7 @@ func (s *stateImpl) Fallback() State {
 	return s.fallback
 }
 
+// TODO(rchew) need some sort of basic metadata for states...
 func NewState(opts ...StateBuilderOption) State {
 	s := &stateImpl{}
 	for _, opt := range opts {
