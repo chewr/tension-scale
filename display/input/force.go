@@ -53,6 +53,7 @@ func ForceRequired(f physic.Force) display.ExpectedInput {
 	return &instantaneousForceInputImpl{f: f}
 }
 
+// ForceReceived returns an ActualInput for force received
 // Deprecated: use DynamicForceInput instead
 func ForceReceived(f physic.Force) display.ActualInput {
 	return &instantaneousForceInputImpl{f: f}

@@ -52,7 +52,6 @@ func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bo
 			if !rising {
 				startTime = s.Time
 				startForce = s.Force
-				rising = true
 			}
 			if s.Time.Sub(startTime) > minDuration && s.Force-startForce > minForce {
 				return true
