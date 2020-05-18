@@ -61,3 +61,10 @@ func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bo
 	}
 	return false
 }
+
+func RisingEdge(t time.Duration, f physic.Force) EdgeInput {
+	return &expectedEdgeInputImpl{
+		minDuration: t,
+		minForce:    f,
+	}
+}
