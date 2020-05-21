@@ -2,6 +2,7 @@ package display
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -50,6 +51,7 @@ type UserInput interface {
 }
 
 type UserInputValue interface {
+	fmt.Stringer
 }
 
 type ExpectedInput interface {

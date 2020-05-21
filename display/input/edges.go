@@ -19,6 +19,11 @@ type expectedEdgeInputImpl struct {
 	minForce    physic.Force
 }
 
+func (*expectedEdgeInputImpl) GetVal() display.UserInputValue {
+	// TODO(rchew) implement usefully
+	return nil
+}
+
 func (input *expectedEdgeInputImpl) getThresholds() (time.Duration, physic.Force) {
 	return input.minDuration, input.minForce
 }
