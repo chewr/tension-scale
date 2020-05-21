@@ -27,7 +27,7 @@ func Tare(deadline time.Time) display.State {
 
 func Rest(deadline time.Time) display.State {
 	// TODO(rchew) better to fall back to original state rather than halt?
-	return display.NewState(display.Tare, display.WithExpiryAndFallback(deadline, Halt()))
+	return display.NewState(display.Rest, display.WithExpiryAndFallback(deadline, Halt()))
 }
 
 func Halt() display.State {

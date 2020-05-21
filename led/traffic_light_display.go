@@ -51,8 +51,9 @@ func (d *trafficLightDisplay) Start(ctx context.Context) {
 	t := time.NewTicker(ledRefreshRate)
 	defer t.Stop()
 	for range t.C {
+		currentState := d.updateCurrentState()
 		// TODO(rchew) context logging
-		d.refreshState()
+		_ = d.displayState(currentState)
 		select {
 		case <-ctx.Done():
 			return
@@ -61,24 +62,21 @@ func (d *trafficLightDisplay) Start(ctx context.Context) {
 	}
 }
 
-func (d *trafficLightDisplay) refreshState() error {
+func (d *trafficLightDisplay) updateCurrentState() display.State {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	// TODO(rchew) blinking near expiry?
-	// - don't want to deal with real time coding
-	// - would make sense to apply "overlays" and deal with
-	//   blinking at render time
 	if expiring, ok := d.currentState.ExpiringState(); ok {
 		if expiring.Deadline().Before(time.Now()) {
 			d.currentState = expiring.Fallback()
 		}
 	}
-	c, err := colorFromState(d.currentState)
+	return d.currentState
+}
+
+func (d *trafficLightDisplay) displayState(state display.State) error {
+	c, err := colorFromState(state)
 	if err != nil {
 		return err
 	}
-	if err := d.leds.setColor(c); err != nil {
-		return err
-	}
-	return nil
+	return d.leds.setColor(c)
 }
