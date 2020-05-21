@@ -27,9 +27,8 @@ func (input *instantaneousForceInputImpl) Satisfies(expectedInput display.Expect
 	return false
 }
 
-func (*instantaneousForceInputImpl) GetValue() display.UserInputValue {
-	// TODO(rchew) implement this usefully
-	return nil
+func (input *instantaneousForceInputImpl) GetValue() display.UserInputValue {
+	return input.f
 }
 
 var _ display.ActualInput = &DynamicForceInput{}
@@ -54,9 +53,8 @@ func (input *DynamicForceInput) Satisfies(expected display.ExpectedInput) bool {
 	return false
 }
 
-func (*DynamicForceInput) GetValue() display.UserInputValue {
-	// TODO(rchew) implement this
-	return nil
+func (input *DynamicForceInput) GetValue() display.UserInputValue {
+	return input.f
 }
 
 func ForceRequired(f physic.Force) display.ExpectedInput {
