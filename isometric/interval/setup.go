@@ -41,8 +41,8 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 	}
 	<-done
 
-	// TODO(rchew) make this actually wait for a rising edge
-	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(100*physic.Newton), input.None())); err != nil {
+	risingEdgeInput := &input.DynamicEdgeInput{}
+	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(100*physic.Newton), risingEdgeInput)); err != nil {
 		return err
 	}
 	for {
@@ -50,6 +50,7 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 		if err != nil {
 			return err
 		}
+		risingEdgeInput.Update(fs)
 		if fs.Force >= 20*physic.PoundForce {
 			break
 		}

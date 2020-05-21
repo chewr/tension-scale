@@ -35,8 +35,8 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 	}
 	defer updater.Close()
 
-	// TODO(rchew) this should actually detect and be satisfied by a rising edge
-	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(200*physic.Newton), input.None())); err != nil {
+	risingEdgeInput := &input.DynamicEdgeInput{}
+	if err := model.UpdateState(state.WaitForInput(input.RisingEdge(200*physic.Newton), risingEdgeInput)); err != nil {
 		return err
 	}
 
@@ -50,6 +50,9 @@ func (t maxTest) Run(ctx context.Context, model display.Model, loadCell loadcell
 		if err != nil {
 			return err
 		}
+
+		// update display state
+		risingEdgeInput.Update(r)
 
 		// record data
 		if err := updater.Write(r); err != nil {

@@ -42,12 +42,20 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 	}
 	<-done
 
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second+2*w.timeUnderTension)
+	deadline := time.Now().Add(15*time.Second + 2*w.timeUnderTension)
+	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
 
-	if err := model.UpdateState(state.WaitForInput(input.ForceRequired(w.threshold), input.None())); err != nil {
+	forceInput := &input.DynamicForceInput{}
+	if err := model.UpdateState(state.WaitForInputWithTimeout(input.ForceRequired(w.threshold), forceInput, deadline)); err != nil {
 		return err
 	}
+
+	// TODO(rchew) Should:
+	// - wait for rising edge (deadline: full deadline minus work interval?)
+	// - on rising edge
+	//   - state becomes Work
+	//     - deadline of startTime + TUT
 
 	updater, err := recorder.Start(ctx, w.String())
 	if err != nil {
@@ -70,6 +78,9 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 			return err
 		}
 
+		// Update model state
+		forceInput.UpdateForceInput(r.Force)
+
 		// record data
 		if err := updater.Write(r); err != nil {
 			return err
@@ -85,25 +96,6 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 		// this is done before updating model state to avoid negative durations
 		if underTension && time.Now().Sub(startTime) > w.timeUnderTension {
 			return updater.Finish(isometric.Success)
-		}
-
-		// Update model state
-		var currentState display.State
-		if underTension {
-			currentState = state.Work(
-				input.ForceRequired(w.threshold),
-				input.ForceReceived(r.Force),
-				startTime.Add(w.timeUnderTension),
-			)
-		} else {
-			currentState = state.WaitForInput(
-				input.ForceRequired(w.threshold),
-				input.ForceReceived(r.Force),
-			)
-		}
-
-		if err := model.UpdateState(currentState); err != nil {
-			return err
 		}
 	}
 }
