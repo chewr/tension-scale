@@ -46,7 +46,7 @@ func (v *v2Bridge) ReadContinuous() <-chan measurement.TimeSeriesSample {
 		var (
 			in       analog.Sample
 			out      measurement.TimeSeriesSample
-			chanOpen = true
+			chanOpen bool
 		)
 		in, chanOpen = <-ch
 		for chanOpen {

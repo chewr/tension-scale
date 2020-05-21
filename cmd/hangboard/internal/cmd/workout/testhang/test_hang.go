@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric"
+	"github.com/chewr/tension-scale/isometric/interval"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +20,7 @@ var testCmd = &cobra.Command{
 }
 
 func AddCommands(rootCmd *cobra.Command) {
-	flags(testCmd)
+	errutil.PanicOnErr(flags(testCmd))
 	rootCmd.AddCommand(testCmd)
 }
 
@@ -49,10 +51,10 @@ func doMaxTest(cmd *cobra.Command, args []string) error {
 }
 
 func setupMaxTestWorkout(d time.Duration) isometric.Workout {
-	return isometric.Composite(
-		isometric.SetupInterval(),
-		isometric.RestInterval(5*time.Second),
-		isometric.MaxTest(d),
-		isometric.RestInterval(time.Second*5),
+	return interval.Composite(
+		interval.SetupInterval(time.Minute),
+		interval.RestInterval(5*time.Second),
+		interval.MaxTest(d),
+		interval.RestInterval(time.Second*5),
 	)
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/isometric/data"
@@ -16,11 +17,11 @@ import (
 // TODO(rchew): make portable
 // TODO(rchew): make configurable
 
-func SetupDisplay() (*led.TrafficLight, error) {
+func SetupDisplay() (display.Model, error) {
 	grn := rpi.P1_23
 	ylw := rpi.P1_19
 	red := rpi.P1_21
-	return led.NewTrafficLight(grn, ylw, red)
+	return led.NewTrafficLightDisplay(grn, ylw, red)
 }
 
 func SetupLoadCell() (loadcell.Sensor, error) {
