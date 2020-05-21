@@ -2,7 +2,6 @@ package input
 
 import (
 	"sync"
-	"time"
 
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/loadcell"
@@ -15,8 +14,7 @@ type EdgeInput interface {
 }
 
 type expectedEdgeInputImpl struct {
-	minDuration time.Duration
-	minForce    physic.Force
+	minForce physic.Force
 }
 
 func (*expectedEdgeInputImpl) GetValue() display.UserInputValue {
@@ -69,9 +67,8 @@ func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bo
 	return false
 }
 
-func RisingEdge(t time.Duration, f physic.Force) EdgeInput {
+func RisingEdge(f physic.Force) EdgeInput {
 	return &expectedEdgeInputImpl{
-		minDuration: t,
-		minForce:    f,
+		minForce: f,
 	}
 }
