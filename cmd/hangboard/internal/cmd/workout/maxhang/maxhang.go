@@ -1,6 +1,7 @@
 package maxhang
 
 import (
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/recording"
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric/data"
@@ -76,7 +77,7 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	cliRecorder := shared.CliRecorder(cmd)
+	cliRecorder := recording.CliRecorder(cmd)
 	recorder := data.MultiRecorder(fileRecorder, cliRecorder)
 
 	return maxHangWorkout.Run(cmd.Context(), display, loadCell, recorder)
