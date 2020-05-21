@@ -47,7 +47,7 @@ type ExpiringState interface {
 }
 
 type UserInput interface {
-	GetVal() UserInputValue
+	GetValue() UserInputValue
 }
 
 type UserInputValue interface {

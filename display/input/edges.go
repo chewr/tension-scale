@@ -19,7 +19,7 @@ type expectedEdgeInputImpl struct {
 	minForce    physic.Force
 }
 
-func (*expectedEdgeInputImpl) GetVal() display.UserInputValue {
+func (*expectedEdgeInputImpl) GetValue() display.UserInputValue {
 	// TODO(rchew) implement usefully
 	return nil
 }
@@ -41,7 +41,7 @@ func (input *DynamicEdgeInput) Update(samples ...loadcell.ForceSample) {
 	input.samples = append(input.samples, samples...)
 }
 
-func (*DynamicEdgeInput) GetVal() display.UserInputValue {
+func (*DynamicEdgeInput) GetValue() display.UserInputValue {
 	// TODO(rchew) implement usefully
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 type noInput struct{}
 
 func (noInput) Satisfies(_ display.ExpectedInput) bool { return false }
-func (noInput) GetVal() display.UserInputValue         { return nil }
+func (noInput) GetValue() display.UserInputValue       { return nil }
 
 func None() display.ActualInput {
 	return noInput{}
