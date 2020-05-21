@@ -46,6 +46,10 @@ type ExpiringState interface {
 }
 
 type UserInput interface {
+	GetVal() UserInputValue
+}
+
+type UserInputValue interface {
 }
 
 type ExpectedInput interface {

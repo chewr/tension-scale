@@ -36,6 +36,11 @@ func (input *DynamicEdgeInput) Update(samples ...loadcell.ForceSample) {
 	input.samples = append(input.samples, samples...)
 }
 
+func (*DynamicEdgeInput) GetVal() display.UserInputValue {
+	// TODO(rchew) implement usefully
+	return nil
+}
+
 func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bool {
 	input.mu.Lock()
 	defer input.mu.Unlock()

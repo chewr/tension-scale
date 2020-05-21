@@ -27,6 +27,11 @@ func (input *instantaneousForceInputImpl) Satisfies(expectedInput display.Expect
 	return false
 }
 
+func (*instantaneousForceInputImpl) GetVal() display.UserInputValue {
+	// TODO(rchew) implement this usefully
+	return nil
+}
+
 var _ display.ActualInput = &DynamicForceInput{}
 
 type DynamicForceInput struct {
@@ -34,7 +39,7 @@ type DynamicForceInput struct {
 	f  physic.Force
 }
 
-func (input *DynamicForceInput) UpdatingForceInput(f physic.Force) {
+func (input *DynamicForceInput) UpdateForceInput(f physic.Force) {
 	input.mu.Lock()
 	defer input.mu.Unlock()
 	input.f = f
@@ -47,6 +52,11 @@ func (input *DynamicForceInput) Satisfies(expected display.ExpectedInput) bool {
 		return input.f >= f.getForce()
 	}
 	return false
+}
+
+func (*DynamicForceInput) GetVal() display.UserInputValue {
+	// TODO(rchew) implement this
+	return nil
 }
 
 func ForceRequired(f physic.Force) display.ExpectedInput {
