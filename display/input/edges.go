@@ -31,14 +31,27 @@ func (input *expectedEdgeInputImpl) getThresholds() physic.Force {
 var _ display.ActualInput = &DynamicEdgeInput{}
 
 type DynamicEdgeInput struct {
-	mu      sync.Mutex
-	samples []loadcell.ForceSample
+	mu sync.Mutex
+
+	startForce physic.Force
+	prevForce  physic.Force
+	rising     bool
+
+	maxRisingEdge physic.Force
 }
 
 func (input *DynamicEdgeInput) Update(samples ...loadcell.ForceSample) {
 	input.mu.Lock()
 	defer input.mu.Unlock()
-	input.samples = append(input.samples, samples...)
+	for _, s := range samples {
+		input.rising = s.Force >= input.prevForce
+		if !input.rising {
+			input.startForce = s.Force
+		} else if s.Force-input.startForce > input.maxRisingEdge {
+			input.maxRisingEdge = s.Force - input.startForce
+		}
+		input.prevForce = s.Force
+	}
 }
 
 func (*DynamicEdgeInput) GetValue() display.UserInputValue {
@@ -50,23 +63,8 @@ func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bo
 	input.mu.Lock()
 	defer input.mu.Unlock()
 	if other, ok := expectedInput.(EdgeInput); ok {
-		// TODO(rchew) move to incremental calculation on Update() to avoid long blocking calls here
 		minForce := other.getThresholds()
-		var (
-			startForce physic.Force
-			prevForce  physic.Force
-			rising     bool
-		)
-		for _, s := range input.samples {
-			rising = s.Force >= prevForce
-			if !rising {
-				startForce = s.Force
-			}
-			if s.Force-startForce > minForce {
-				return true
-			}
-			prevForce = s.Force
-		}
+		return input.maxRisingEdge >= minForce
 	}
 	return false
 }
