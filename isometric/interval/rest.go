@@ -21,7 +21,7 @@ func (r restInterval) Run(ctx context.Context, model display.Model, _ loadcell.S
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(r))
 	defer cancel()
 
-	if err := model.UpdateState(state.Rest(time.Duration(r))); err != nil {
+	if err := model.UpdateState(state.Rest(time.Now().Add(time.Duration(r)))); err != nil {
 		return err
 	}
 

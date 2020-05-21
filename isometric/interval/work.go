@@ -32,7 +32,7 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 
 	// Tare + setup
 	tareDur := 2 * time.Second
-	if err := model.UpdateState(state.Tare(tareDur)); err != nil {
+	if err := model.UpdateState(state.Tare(time.Now().Add(tareDur))); err != nil {
 		return err
 	}
 	done := time.After(tareDur)
@@ -93,7 +93,7 @@ func (w workInterval) Run(ctx context.Context, model display.Model, loadCell loa
 			currentState = state.Work(
 				input.ForceRequired(w.threshold),
 				input.ForceReceived(r.Force),
-				w.timeUnderTension-(time.Now().Sub(startTime)),
+				startTime.Add(w.timeUnderTension),
 			)
 		} else {
 			currentState = state.WaitForInput(

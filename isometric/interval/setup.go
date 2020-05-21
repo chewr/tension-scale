@@ -32,7 +32,7 @@ func (s setupInterval) Run(ctx context.Context, model display.Model, loadCell lo
 
 	tareDur := 5 * time.Second
 	done := time.After(tareDur)
-	if err := model.UpdateState(state.Tare(tareDur)); err != nil {
+	if err := model.UpdateState(state.Tare(time.Now().Add(tareDur))); err != nil {
 		return err
 	}
 	time.Sleep(time.Second)
