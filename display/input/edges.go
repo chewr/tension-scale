@@ -11,7 +11,7 @@ import (
 
 type EdgeInput interface {
 	display.ExpectedInput
-	getThresholds() (time.Duration, physic.Force)
+	getThresholds() physic.Force
 }
 
 type expectedEdgeInputImpl struct {
@@ -24,8 +24,8 @@ func (*expectedEdgeInputImpl) GetValue() display.UserInputValue {
 	return nil
 }
 
-func (input *expectedEdgeInputImpl) getThresholds() (time.Duration, physic.Force) {
-	return input.minDuration, input.minForce
+func (input *expectedEdgeInputImpl) getThresholds() physic.Force {
+	return input.minForce
 }
 
 var _ display.ActualInput = &DynamicEdgeInput{}
@@ -51,21 +51,21 @@ func (input *DynamicEdgeInput) Satisfies(expectedInput display.ExpectedInput) bo
 	defer input.mu.Unlock()
 	if other, ok := expectedInput.(EdgeInput); ok {
 		// TODO(rchew) move to incremental calculation on Update() to avoid long blocking calls here
-		minDuration, minForce := other.getThresholds()
+		minForce := other.getThresholds()
 		var (
-			startTime  time.Time
 			startForce physic.Force
+			prevForce  physic.Force
 			rising     bool
 		)
 		for _, s := range input.samples {
-			rising = s.Force >= startForce
+			rising = s.Force >= prevForce
 			if !rising {
-				startTime = s.Time
 				startForce = s.Force
 			}
-			if s.Time.Sub(startTime) > minDuration && s.Force-startForce > minForce {
+			if s.Force-startForce > minForce {
 				return true
 			}
+			prevForce = s.Force
 		}
 	}
 	return false
