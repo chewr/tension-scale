@@ -5,9 +5,20 @@ import (
 	"time"
 )
 
+type WorkoutStateType int
+
+const (
+	Halt = iota
+	Rest
+	Work
+	Tare
+	Wait
+)
+
 type AbstractState interface {
 	// TODO(rchew) decide if this is necessary
 	noImplementAbstractState()
+	GetType() WorkoutStateType
 }
 
 type baseAbstractState struct{}
@@ -16,6 +27,7 @@ func (baseAbstractState) noImplementAbstractState() {}
 
 type State interface {
 	AbstractState
+	// TODO(rchew) better to just do this with casting?
 	ExpiringState() (ExpiringState, bool)
 	InputDependentState() (InputDependentState, bool)
 }

@@ -31,6 +31,10 @@ func WithExpectedUserInput(expected ExpectedInput, actual ActualInput) StateBuil
 }
 
 type stateImpl struct {
+	// TODO(rchew) finagle a way to get this to be immutable through options
+	// ^ not entirely necessary as options are not user-implementable
+	stateType WorkoutStateType
+
 	baseAbstractState
 	isExpiring, isInputDependent bool
 
@@ -46,6 +50,10 @@ func (s *stateImpl) InputDependentState() (InputDependentState, bool) {
 		return s, true
 	}
 	return nil, false
+}
+
+func (s *stateImpl) GetType() WorkoutStateType {
+	return s.stateType
 }
 
 func (s *stateImpl) InputRequired() ExpectedInput {
@@ -75,9 +83,10 @@ func (s *stateImpl) Fallback() State {
 	return s.fallback
 }
 
-// TODO(rchew) need some sort of basic metadata for states...
-func NewState(opts ...StateBuilderOption) State {
-	s := &stateImpl{}
+func NewState(stateType WorkoutStateType, opts ...StateBuilderOption) State {
+	s := &stateImpl{
+		stateType: stateType,
+	}
 	for _, opt := range opts {
 		opt.apply(s)
 	}
