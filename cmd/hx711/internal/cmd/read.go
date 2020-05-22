@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"periph.io/x/periph/host"
 	"sync"
 	"time"
 
@@ -17,6 +18,12 @@ import (
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
 	"periph.io/x/periph/host/rpi"
 )
+
+func init() {
+	if _, err := host.Init(); err != nil {
+		panic(err)
+	}
+}
 
 var (
 	readCmd = &cobra.Command{

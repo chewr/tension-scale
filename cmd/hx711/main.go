@@ -17,14 +17,7 @@ package main
 
 import (
 	"github.com/chewr/tension-scale/cmd/hx711/internal/cmd"
-	"periph.io/x/periph/host"
 )
-
-func init() {
-	if _, err := host.Init(); err != nil {
-		panic(err)
-	}
-}
 
 func main() {
 	cmd.Execute()

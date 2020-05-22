@@ -3,6 +3,7 @@ package shared
 import (
 	"os"
 	"path/filepath"
+	"periph.io/x/periph/host"
 
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/hx711"
@@ -16,6 +17,12 @@ import (
 // TODO(rchew): make reusable
 // TODO(rchew): make portable
 // TODO(rchew): make configurable
+
+func init() {
+	if _, err := host.Init(); err != nil {
+		panic(err)
+	}
+}
 
 func SetupDisplay() (display.Model, error) {
 	grn := rpi.P1_23
