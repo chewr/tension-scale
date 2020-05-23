@@ -1,14 +1,15 @@
 package shared
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
-	"os"
-	"path/filepath"
 	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/rpi"
 )

@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"periph.io/x/periph/host"
 	"sync"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"periph.io/x/periph/experimental/conn/analog"
 	periphimpl "periph.io/x/periph/experimental/devices/hx711"
+	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/rpi"
 )
 
