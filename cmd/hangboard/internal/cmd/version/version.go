@@ -2,17 +2,15 @@ package version
 
 import (
 	"fmt"
-
+	"github.com/chewr/tension-scale/version"
 	"github.com/spf13/cobra"
 )
-
-var version = "none"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if _, err := fmt.Fprintln(cmd.OutOrStdout(), version); err != nil {
+		if _, err := fmt.Fprintln(cmd.OutOrStdout(), version.GetVersion()); err != nil {
 			return err
 		}
 		return nil
