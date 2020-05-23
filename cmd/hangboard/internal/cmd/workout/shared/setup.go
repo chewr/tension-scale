@@ -1,16 +1,15 @@
 package shared
 
 import (
-	"os"
-	"path/filepath"
-	"periph.io/x/periph/host"
-
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/hx711"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/led"
 	"github.com/chewr/tension-scale/loadcell"
+	"os"
+	"path/filepath"
+	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/rpi"
 )
 
@@ -18,13 +17,10 @@ import (
 // TODO(rchew): make portable
 // TODO(rchew): make configurable
 
-func init() {
-	if _, err := host.Init(); err != nil {
-		panic(err)
-	}
-}
-
 func SetupDisplay() (display.Model, error) {
+	if _, err := host.Init(); err != nil {
+		return nil, err
+	}
 	grn := rpi.P1_23
 	ylw := rpi.P1_19
 	red := rpi.P1_21
@@ -32,6 +28,9 @@ func SetupDisplay() (display.Model, error) {
 }
 
 func SetupLoadCell() (loadcell.Sensor, error) {
+	if _, err := host.Init(); err != nil {
+		return nil, err
+	}
 	hx, err := hx711.New(rpi.P1_31, rpi.P1_29)
 	if err != nil {
 		return nil, err

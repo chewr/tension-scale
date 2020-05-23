@@ -19,12 +19,6 @@ import (
 	"periph.io/x/periph/host/rpi"
 )
 
-func init() {
-	if _, err := host.Init(); err != nil {
-		panic(err)
-	}
-}
-
 var (
 	readCmd = &cobra.Command{
 		Use:   "read",
@@ -37,12 +31,12 @@ var (
 	ErrStopped = errors.New("driver not running")
 )
 
-var (
-	sclk = rpi.P1_31 // GPIO6
-	dout = rpi.P1_29 // GPIO5
-)
-
 func loadHx711(cmd *cobra.Command) (backcompat.HX711, error) {
+	if _, err := host.Init(); err != nil {
+		return nil, err
+	}
+	sclk := rpi.P1_31 // GPIO6
+	dout := rpi.P1_29 // GPIO5
 	if viper.GetBool(flagUsePeriphImplementation) {
 		cmd.Println("Using periph hx711 driver implementation")
 		return periphimpl.New(sclk, dout)
