@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/daemon"
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/dev"
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/version"
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout"
 	"github.com/spf13/cobra"
 )
@@ -12,5 +13,6 @@ func setup(rootCmd *cobra.Command) error {
 	workout.AddCommands(rootCmd)
 	daemon.AddCommands(rootCmd)
 	dev.AddCommands(rootCmd)
+	version.AddCommands(rootCmd)
 	return nil
 }
