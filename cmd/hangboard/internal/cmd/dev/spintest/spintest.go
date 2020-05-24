@@ -20,6 +20,7 @@ func AddCommands(rootCmd *cobra.Command) {
 }
 
 const (
+	flagColor          = "color"
 	flagSuffix         = "suffix"
 	flagDefaultCharset = "default-charset"
 )
@@ -27,6 +28,7 @@ const (
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(flagSuffix, "s", "", "spinner suffix")
 	cmd.Flags().IntP(flagDefaultCharset, "d", 0, "default charset")
+	cmd.Flags().StringP(flagColor, "c", "", "spinner color")
 }
 
 func doSpinner(cmd *cobra.Command, args []string) error {
@@ -44,6 +46,14 @@ func doSpinner(cmd *cobra.Command, args []string) error {
 	charSetIndex, err := cmd.Flags().GetInt(flagDefaultCharset)
 	if err != nil {
 		return err
+	}
+
+	if cmd.Flags().Lookup(flagColor).Changed {
+		color, err := cmd.Flags().GetString(flagColor)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, spinner.WithColor(color))
 	}
 
 	s := spinner.New(spinner.CharSets[charSetIndex], 300*time.Millisecond, opts...)
