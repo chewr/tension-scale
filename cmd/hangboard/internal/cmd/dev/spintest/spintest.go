@@ -1,6 +1,7 @@
 package spintest
 
 import (
+	"context"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -48,6 +49,10 @@ func doSpinner(cmd *cobra.Command, args []string) error {
 	s := spinner.New(spinner.CharSets[charSetIndex], 300*time.Millisecond, opts...)
 	s.Start()
 
-	<-cmd.Context().Done()
-	return cmd.Context().Err()
+	ctx := cmd.Context()
+	<-ctx.Done()
+	if err := ctx.Err(); err != nil && err != context.Canceled {
+		return err
+	}
+	return nil
 }
