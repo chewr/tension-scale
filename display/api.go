@@ -37,6 +37,7 @@ type InputDependentState interface {
 	AbstractState
 	InputRequired() ExpectedInput
 	InputReceived() ActualInput
+	// TODO(rchew): make Satisfied return read-once channel and add an evolving state
 	Satisfied() bool
 }
 
