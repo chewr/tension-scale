@@ -2,18 +2,19 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync"
 	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/chewr/tension-scale/display"
+	"github.com/gosuri/uilive"
 )
 
 type cliDisplay struct {
-	s            *spinner.Spinner
 	mu           sync.Mutex
 	currentState display.State
+	uw           *uilive.Writer
 }
 
 func (d *cliDisplay) UpdateState(state display.State) error {
@@ -39,41 +40,35 @@ func (d *cliDisplay) getCurrentState() display.State {
 	return d.currentState
 }
 
-func (d *cliDisplay) Start(ctx context.Context) {
-	d.s.Start()
-	go func() {
-		<-ctx.Done()
-		d.s.Stop()
-	}()
+func toCliOutput(state display.State) string {
+	// TODO(rchew) implement
+	return ""
+}
 
+func (d *cliDisplay) Start(ctx context.Context) {
+	t := time.NewTicker(50 * time.Millisecond)
 	go func() {
-		for {
-			currentState := d.getCurrentState()
-			d.s.UpdateCharSet()
-			d.s.Color()
+		defer t.Stop()
+		for range t.C {
 			select {
 			case <-ctx.Done():
 				return
 			default:
 			}
+			currentState := d.getCurrentState()
+			// TODO(rchew) error logging
+			_, _ = fmt.Fprintln(d.uw, toCliOutput(currentState))
+			_ = d.uw.Flush()
 		}
 	}()
 }
 
 func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
-	var (
-		// among the default charsets, [14] is among the few which look good at 50ms refresh rate
-		defaultCharset  = []string{"waiting..."}
-		refreshInterval = 50 * time.Millisecond
-	)
-	s := spinner.New(
-		defaultCharset,
-		refreshInterval,
-		spinner.WithWriter(w),
-		spinner.WithHiddenCursor(true),
-	)
+	// TODO(rchew) wrap
+	uw := uilive.New()
+	uw.Out = w
 	d := &cliDisplay{
-		s: s,
+		uw: uw,
 	}
 	return d, nil
 }
