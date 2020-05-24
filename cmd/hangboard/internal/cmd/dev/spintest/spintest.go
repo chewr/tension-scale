@@ -31,7 +31,7 @@ func addFlags(cmd *cobra.Command) {
 
 func doSpinner(cmd *cobra.Command, args []string) error {
 	var opts []spinner.Option
-	opts = append(opts, spinner.WithWriter(cmd.OutOrStdout()))
+	opts = append(opts, spinner.WithWriter(cmd.OutOrStdout()), spinner.WithHiddenCursor(true))
 
 	suffix, err := cmd.Flags().GetString(flagSuffix)
 	if err != nil {
