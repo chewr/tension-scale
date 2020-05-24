@@ -48,6 +48,7 @@ func doSpinner(cmd *cobra.Command, args []string) error {
 
 	s := spinner.New(spinner.CharSets[charSetIndex], 300*time.Millisecond, opts...)
 	s.Start()
+	defer s.Stop()
 
 	ctx := cmd.Context()
 	<-ctx.Done()
