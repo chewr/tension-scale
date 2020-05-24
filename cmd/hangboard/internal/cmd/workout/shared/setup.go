@@ -18,7 +18,7 @@ import (
 // TODO(rchew): make portable
 // TODO(rchew): make configurable
 
-func SetupDisplay() (display.Model, error) {
+func SetupDisplay() (display.AutoRefreshingModel, error) {
 	if _, err := host.Init(); err != nil {
 		return nil, err
 	}

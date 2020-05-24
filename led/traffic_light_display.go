@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/state"
 	"periph.io/x/periph/conn/gpio"
 )
 
@@ -14,6 +15,7 @@ type trafficLightDisplay struct {
 	mu           sync.Mutex
 	currentState display.State
 	leds         *trafficLight
+	ticker       *time.Ticker
 }
 
 func NewTrafficLightDisplay(grn, ylw, red gpio.PinOut) (display.AutoRefreshingModel, error) {
@@ -27,6 +29,7 @@ func NewTrafficLightDisplay(grn, ylw, red gpio.PinOut) (display.AutoRefreshingMo
 		return nil, err
 	}
 	return &trafficLightDisplay{
+		currentState: state.Halt(),
 		leds: &trafficLight{
 			green:  grn,
 			yellow: ylw,
@@ -48,9 +51,18 @@ func (d *trafficLightDisplay) UpdateState(state display.State) error {
 const ledRefreshRate = 10 * time.Millisecond
 
 func (d *trafficLightDisplay) Start(ctx context.Context) {
-	t := time.NewTicker(ledRefreshRate)
-	defer t.Stop()
-	for range t.C {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.ticker != nil {
+		return
+	}
+	d.ticker = time.NewTicker(ledRefreshRate)
+	d.run(ctx, d.ticker.C)
+}
+
+func (d *trafficLightDisplay) run(ctx context.Context, c <-chan time.Time) {
+	defer d.stop()
+	for range c {
 		currentState := d.updateCurrentState()
 		// TODO(rchew) context logging
 		_ = d.displayState(currentState)
@@ -59,6 +71,15 @@ func (d *trafficLightDisplay) Start(ctx context.Context) {
 			return
 		default:
 		}
+	}
+}
+
+func (d *trafficLightDisplay) stop() {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.ticker != nil {
+		d.ticker.Stop()
+		d.ticker = nil
 	}
 }
 
