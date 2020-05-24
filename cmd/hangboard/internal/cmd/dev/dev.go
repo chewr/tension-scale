@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/dev/gosuri"
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/dev/spintest"
 	"github.com/spf13/cobra"
 )
@@ -17,4 +18,5 @@ func AddCommands(rootCmd *cobra.Command) {
 
 func setup(devCmd *cobra.Command) {
 	spintest.AddCommands(devCmd)
+	gosuri.AddCommands(devCmd)
 }
