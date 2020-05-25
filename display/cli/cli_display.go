@@ -30,7 +30,10 @@ func (d *cliDisplay) Start(ctx context.Context) {
 			default:
 			}
 			// TODO(rchew) error logging
-			currentState, _ := d.GetCurrentState()
+			currentState, err := d.GetCurrentState()
+			if err != nil {
+				continue
+			}
 			_ = d.printer.Print(ToCliOutput(currentState))
 		}
 	}()

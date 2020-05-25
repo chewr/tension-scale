@@ -52,14 +52,17 @@ func (d *trafficLightDisplay) Start(ctx context.Context) {
 func (d *trafficLightDisplay) run(ctx context.Context, c <-chan time.Time) {
 	defer d.stop()
 	for range c {
-		// TODO(rchew) context logging
-		currentState, _ := d.GetCurrentState()
-		_ = d.displayState(currentState)
 		select {
 		case <-ctx.Done():
 			return
 		default:
 		}
+		currentState, err := d.GetCurrentState()
+		if err != nil {
+			continue
+			// TODO(rchew) context logging
+		}
+		_ = d.displayState(currentState)
 	}
 }
 
