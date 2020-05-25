@@ -29,6 +29,7 @@ type refreshingWriter struct {
 	lastOutput string
 }
 
+// Shamelessly stolen from briandowns/spinner
 func (w *refreshingWriter) erase() error {
 	n := utf8.RuneCountInString(w.lastOutput)
 	del, _ := hex.DecodeString("7f")
@@ -47,17 +48,17 @@ func (w *refreshingWriter) erase() error {
 	return nil
 }
 
-func (s *refreshingWriter) Print(output CliOutput) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if err := s.erase(); err != nil {
+func (w *refreshingWriter) Print(output CliOutput) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if err := w.erase(); err != nil {
 		return err
 	}
 
 	outColor := fmt.Sprintf("%s ", output.WithColor())
-	if _, err := fmt.Fprint(s.writer, outColor); err != nil {
+	if _, err := fmt.Fprint(w.writer, outColor); err != nil {
 		return err
 	}
-	s.lastOutput = fmt.Sprintf("%s ", output.NoColor())
+	w.lastOutput = fmt.Sprintf("%s ", output.NoColor())
 	return nil
 }
