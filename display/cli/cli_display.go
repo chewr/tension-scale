@@ -24,6 +24,7 @@ func (d *cliDisplay) UpdateState(state display.State) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.currentState = state
+	d.currentState.GetMutableState().Start()
 	return nil
 }
 
@@ -37,6 +38,7 @@ func (d *cliDisplay) getCurrentState() display.State {
 	if expiring, ok := d.currentState.ExpiringState(); ok {
 		if time.Now().After(expiring.Deadline()) {
 			d.currentState = expiring.Fallback()
+			d.currentState.GetMutableState().Start()
 		}
 	}
 

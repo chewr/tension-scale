@@ -45,6 +45,7 @@ func (d *trafficLightDisplay) UpdateState(state display.State) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.currentState = state
+	d.currentState.GetMutableState().Start()
 	return nil
 }
 
@@ -89,6 +90,7 @@ func (d *trafficLightDisplay) updateCurrentState() display.State {
 	if expiring, ok := d.currentState.ExpiringState(); ok {
 		if expiring.Deadline().Before(time.Now()) {
 			d.currentState = expiring.Fallback()
+			d.currentState.GetMutableState().Start()
 		}
 	}
 	return d.currentState
