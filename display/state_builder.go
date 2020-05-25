@@ -1,6 +1,7 @@
 package display
 
 import (
+	"sync"
 	"time"
 )
 
@@ -43,6 +44,37 @@ type stateImpl struct {
 
 	expected ExpectedInput
 	actual   ActualInput
+
+	mutableState *mutableStateImpl
+}
+
+type mutableStateImpl struct {
+	mu        sync.Mutex
+	startTime *time.Time
+}
+
+func (s *mutableStateImpl) Start() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.startTime == nil {
+		*s.startTime = time.Now()
+	}
+}
+
+func (s *mutableStateImpl) GetStartTime() time.Time {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.startTime != nil {
+		return *s.startTime
+	}
+	// TODO(rchew) leave behavior undefined?
+	return time.Time{}
+}
+
+func (s *mutableStateImpl) Started() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.startTime != nil
 }
 
 func (s *stateImpl) InputDependentState() (InputDependentState, bool) {
@@ -54,6 +86,10 @@ func (s *stateImpl) InputDependentState() (InputDependentState, bool) {
 
 func (s *stateImpl) GetType() WorkoutStateType {
 	return s.stateType
+}
+
+func (s *stateImpl) GetMutableState() MutableState {
+	return s.mutableState
 }
 
 func (s *stateImpl) InputRequired() ExpectedInput {
@@ -85,7 +121,8 @@ func (s *stateImpl) Fallback() State {
 
 func NewState(stateType WorkoutStateType, opts ...StateBuilderOption) State {
 	s := &stateImpl{
-		stateType: stateType,
+		stateType:    stateType,
+		mutableState: &mutableStateImpl{},
 	}
 	for _, opt := range opts {
 		opt.apply(s)

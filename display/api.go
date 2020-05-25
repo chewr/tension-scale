@@ -20,6 +20,13 @@ type AbstractState interface {
 	// TODO(rchew) decide if this is necessary
 	noImplementAbstractState()
 	GetType() WorkoutStateType
+	GetMutableState() MutableState
+}
+
+type MutableState interface {
+	Start()
+	Started() bool
+	GetStartTime() time.Time
 }
 
 type baseAbstractState struct{}
