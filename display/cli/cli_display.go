@@ -5,44 +5,18 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/chewr/tension-scale/display"
 	"github.com/chewr/tension-scale/display/cli/refresh"
 	"github.com/chewr/tension-scale/display/input"
+	"github.com/chewr/tension-scale/display/stateimpl"
 	"github.com/fatih/color"
 )
 
 type cliDisplay struct {
-	mu           sync.Mutex
-	currentState display.State
-	printer      refresh.Printer
-}
-
-func (d *cliDisplay) UpdateState(state display.State) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.currentState = state
-	d.currentState.GetMutableState().Start()
-	return nil
-}
-
-func (d *cliDisplay) getCurrentState() display.State {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.currentState == nil {
-		return nil
-	}
-
-	if expiring, ok := d.currentState.ExpiringState(); ok {
-		if time.Now().After(expiring.Deadline()) {
-			d.currentState = expiring.Fallback()
-			d.currentState.GetMutableState().Start()
-		}
-	}
-
-	return d.currentState
+	stateimpl.StateHolder
+	printer refresh.Printer
 }
 
 func (d *cliDisplay) Start(ctx context.Context) {
@@ -55,8 +29,8 @@ func (d *cliDisplay) Start(ctx context.Context) {
 				return
 			default:
 			}
-			currentState := d.getCurrentState()
 			// TODO(rchew) error logging
+			currentState, _ := d.GetCurrentState()
 			_ = d.printer.Print(ToCliOutput(currentState))
 		}
 	}()
