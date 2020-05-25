@@ -17,7 +17,8 @@ import (
 type cliDisplay struct {
 	mu           sync.Mutex
 	currentState display.State
-	uw           *uilive.Writer
+	// TODO(rchew) uilive is trash
+	uw *uilive.Writer
 }
 
 func (d *cliDisplay) UpdateState(state display.State) error {
