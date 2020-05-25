@@ -57,6 +57,7 @@ func (s *mutableStateImpl) Start() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.startTime == nil {
+		s.startTime = new(time.Time)
 		*s.startTime = time.Now()
 	}
 }
