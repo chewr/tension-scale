@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/cli"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric"
 	"github.com/chewr/tension-scale/isometric/interval"
@@ -25,11 +27,11 @@ func AddCommands(rootCmd *cobra.Command) {
 }
 
 func doMaxTest(cmd *cobra.Command, args []string) error {
-	display, err := shared.SetupDisplay()
+	ledDisplay, err := shared.SetupDisplay()
 	if err != nil {
 		return err
 	}
-	display.Start(cmd.Context())
+	ledDisplay.Start(cmd.Context())
 	loadCell, err := shared.SetupLoadCell()
 	if err != nil {
 		return err
@@ -37,6 +39,7 @@ func doMaxTest(cmd *cobra.Command, args []string) error {
 	if err := loadCell.Tare(cmd.Context(), 20); err != nil {
 		return err
 	}
+	// TODO(rchew) reconcile cli recorder and cli display
 	recorder, err := shared.SetupOutput()
 	if err != nil {
 		return err
@@ -47,8 +50,16 @@ func doMaxTest(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	cliModel, err := cli.NewCliDisplay(cmd.OutOrStdout())
+	if err != nil {
+		return err
+	}
+	cliModel.Start(cmd.Context())
+
+	model := display.ModelMux(ledDisplay, cliModel)
+
 	maxTestWorkout := setupMaxTestWorkout(duration)
-	return maxTestWorkout.Run(cmd.Context(), display, loadCell, recorder)
+	return maxTestWorkout.Run(cmd.Context(), model, loadCell, recorder)
 }
 
 func setupMaxTestWorkout(d time.Duration) isometric.Workout {

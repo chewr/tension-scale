@@ -3,6 +3,8 @@ package maxhang
 import (
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/recording"
 	"github.com/chewr/tension-scale/cmd/hangboard/internal/cmd/workout/shared"
+	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/cli"
 	"github.com/chewr/tension-scale/errutil"
 	"github.com/chewr/tension-scale/isometric/data"
 	"github.com/chewr/tension-scale/workout/maxhang"
@@ -62,11 +64,11 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	display, err := shared.SetupDisplay()
+	ledDisplay, err := shared.SetupDisplay()
 	if err != nil {
 		return err
 	}
-	display.Start(cmd.Context())
+	ledDisplay.Start(cmd.Context())
 	loadCell, err := shared.SetupLoadCell()
 	if err != nil {
 		return err
@@ -78,8 +80,18 @@ func doWorkout(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO(rchew) reconcile cliRecorder with the cliDisplay
 	cliRecorder := recording.CliRecorder(cmd)
 	recorder := data.MultiRecorder(fileRecorder, cliRecorder)
 
-	return maxHangWorkout.Run(cmd.Context(), display, loadCell, recorder)
+	cliModel, err := cli.NewCliDisplay(cmd.OutOrStdout())
+	if err != nil {
+		return err
+	}
+	cliModel.Start(cmd.Context())
+
+	model := display.ModelMux(ledDisplay, cliModel)
+
+	return maxHangWorkout.Run(cmd.Context(), model, loadCell, recorder)
 }
