@@ -46,7 +46,7 @@ func (d *trafficLightDisplay) Start(ctx context.Context) {
 		return
 	}
 	d.ticker = time.NewTicker(ledRefreshRate)
-	d.run(ctx, d.ticker.C)
+	go d.run(ctx, d.ticker.C)
 }
 
 func (d *trafficLightDisplay) run(ctx context.Context, c <-chan time.Time) {
