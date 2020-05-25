@@ -16,6 +16,23 @@ const (
 	Wait
 )
 
+func (t WorkoutStateType) String() string {
+	switch t {
+	case Halt:
+		return "Halt"
+	case Rest:
+		return "Rest"
+	case Work:
+		return "Pull"
+	case Tare:
+		return "Taring"
+	case Wait:
+		return "Ready"
+	default:
+		return "Unknown"
+	}
+}
+
 type AbstractState interface {
 	// TODO(rchew) decide if this is necessary
 	noImplementAbstractState()

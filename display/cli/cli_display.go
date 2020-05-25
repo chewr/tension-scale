@@ -37,7 +37,6 @@ func (d *cliDisplay) Start(ctx context.Context) {
 }
 
 func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
-	// TODO(rchew) wrap
 	d := &cliDisplay{
 		printer: refresh.NewPrinter(w),
 	}
@@ -45,21 +44,12 @@ func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
 }
 
 func title(state display.State) refresh.CliOutput {
-	// TODO(rchew) move to display pkg
-	s := ""
 	switch state.GetType() {
-	case display.Rest:
-		s = "Rest"
-	case display.Tare:
-		s = "Taring"
-	case display.Wait, display.Work:
-		s = "Pull"
-	case display.Halt:
-		fallthrough
+	case display.Work, display.Rest, display.Tare, display.Wait:
+		return refresh.FromString(fmt.Sprint(state.GetType()))
 	default:
 		return refresh.NoShow()
 	}
-	return refresh.FromString(s)
 }
 
 func clock(state display.State) refresh.CliOutput {
