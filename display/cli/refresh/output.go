@@ -6,14 +6,24 @@ import (
 	"github.com/fatih/color"
 )
 
+type Renderable interface {
+	Render() bool
+}
+
 type CliOutput interface {
+	Renderable
 	NoColor() string
 	WithColor() string
 }
 
+type noShow struct{}
+
+func (noShow) NoColor() string   { return "" }
+func (noShow) WithColor() string { return "" }
+func (noShow) Render() bool      { return false }
+
 func NoShow() CliOutput {
-	// TODO(rchew) implement more better
-	return FromString("")
+	return noShow{}
 }
 
 func FromString(s string) CliOutput {
@@ -30,6 +40,7 @@ type basicImpl struct {
 
 func (b basicImpl) NoColor() string   { return b.noColor }
 func (b basicImpl) WithColor() string { return b.withColor }
+func (b basicImpl) Render() bool      { return true }
 func FromStrings(noColor, withColor string) CliOutput {
 	return basicImpl{
 		noColor:   noColor,
@@ -39,24 +50,29 @@ func FromStrings(noColor, withColor string) CliOutput {
 
 type concatImpl struct {
 	outputs []CliOutput
-	delim   CliOutput
+	// TODO(rchew) handle delim with Render() == false? Or just make delim a string instead?
+	delim CliOutput
 }
 
 func (c *concatImpl) NoColor() string {
-	elems := make([]string, len(c.outputs))
-	for i, o := range c.outputs {
-		elems[i] = o.NoColor()
-	}
-	return strings.Join(elems, c.delim.NoColor())
+	return join(CliOutput.NoColor, c.delim, c.outputs...)
 }
 
 func (c *concatImpl) WithColor() string {
-	elems := make([]string, len(c.outputs))
-	for i, o := range c.outputs {
-		elems[i] = o.WithColor()
-	}
-	return strings.Join(elems, c.delim.WithColor())
+	return join(CliOutput.WithColor, c.delim, c.outputs...)
 }
+
+func join(fn func(CliOutput) string, delim CliOutput, elems ...CliOutput) string {
+	outputs := make([]string, 0, len(elems))
+	for _, o := range elems {
+		if o.Render() {
+			outputs = append(outputs, fn(o))
+		}
+	}
+	return strings.Join(outputs, fn(delim))
+}
+
+func (c *concatImpl) Render() bool { return true }
 
 func Concat(delim CliOutput, outputs ...CliOutput) CliOutput {
 	return &concatImpl{
