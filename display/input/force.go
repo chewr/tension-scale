@@ -9,20 +9,20 @@ import (
 
 type ForceInput interface {
 	display.ExpectedInput
-	getForce() physic.Force
+	GetForce() physic.Force
 }
 
 type instantaneousForceInputImpl struct {
 	f physic.Force
 }
 
-func (input *instantaneousForceInputImpl) getForce() physic.Force {
+func (input *instantaneousForceInputImpl) GetForce() physic.Force {
 	return input.f
 }
 
 func (input *instantaneousForceInputImpl) Satisfies(expectedInput display.ExpectedInput) bool {
 	if expected, ok := expectedInput.(ForceInput); ok {
-		return input.getForce() >= expected.getForce()
+		return input.GetForce() >= expected.GetForce()
 	}
 	return false
 }
@@ -48,12 +48,18 @@ func (input *DynamicForceInput) Satisfies(expected display.ExpectedInput) bool {
 	input.mu.Lock()
 	defer input.mu.Unlock()
 	if f, ok := expected.(ForceInput); ok {
-		return input.f >= f.getForce()
+		return input.f >= f.GetForce()
 	}
 	return false
 }
 
 func (input *DynamicForceInput) GetValue() display.UserInputValue {
+	return input.f
+}
+
+func (input *DynamicForceInput) GetForce() physic.Force {
+	input.mu.Lock()
+	defer input.mu.Unlock()
 	return input.f
 }
 

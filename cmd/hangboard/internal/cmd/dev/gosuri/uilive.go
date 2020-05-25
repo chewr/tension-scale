@@ -5,9 +5,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/fatih/color"
+	"github.com/chewr/tension-scale/display/cli"
+	"github.com/chewr/tension-scale/display/input"
+	"github.com/chewr/tension-scale/display/state"
 	"github.com/gosuri/uilive"
 	"github.com/spf13/cobra"
+	"periph.io/x/periph/conn/physic"
 )
 
 var spinnerCmd = &cobra.Command{
@@ -30,34 +33,48 @@ func addFlags(cmd *cobra.Command) {
 }
 
 func doUilive(cmd *cobra.Command, args []string) error {
-	strings := []string{
-		"foo",
-		"bar",
-		"foobar",
-	}
-	colors := [][]color.Attribute{
-		{color.BlinkRapid, color.FgCyan},
-		{color.Italic},
-		{color.FgHiRed},
-		{color.BgBlue, color.FgMagenta},
-	}
+	start := time.Now()
+	// st := state.Rest(time.Now().Add(20 * time.Second))
+	forceInput := &input.DynamicForceInput{}
+	st := state.Work(
+		input.ForceRequired(700*physic.Newton),
+		forceInput,
+		time.Now().Add(time.Second*12),
+	)
 	uw := uilive.New()
 	uw.Out = cmd.OutOrStdout()
+	var f physic.Force = 0
+	rand.Seed(time.Now().Unix())
 	for {
 		select {
 		case <-cmd.Context().Done():
 			return nil
 		default:
 		}
-		s := strings[rand.Intn(len(strings))]
-		c := colors[rand.Intn(len(colors))]
 
-		if _, err := fmt.Fprintln(uw, color.New(c...).SprintfFunc()(s)); err != nil {
+		var n physic.Force = 0
+		norm60 := rand.Int63n(50) + rand.Int63n(50) + rand.Int63n(50) - 75
+		if f > 800*physic.Newton {
+			n = physic.Force(norm60) - 40
+		} else if f > 725*physic.Newton {
+			n = physic.Force(norm60) - 10
+		} else if f > 700*physic.Newton {
+			n = physic.Force(norm60) + 10
+		} else if f > 650*physic.Newton {
+			n = physic.Force(norm60) + 20
+		} else {
+			n = 30
+		}
+		f += n * physic.Newton
+
+		forceInput.UpdateForceInput(f)
+
+		if _, err := fmt.Fprintln(uw, cli.ToCliOutput(start, st)); err != nil {
 			return err
 		}
 		if err := uw.Flush(); err != nil {
 			return err
 		}
-		time.Sleep(time.Second / 2)
+		time.Sleep(time.Millisecond * 100)
 	}
 }
