@@ -12,7 +12,6 @@ import (
 	"github.com/chewr/tension-scale/display/cli/refresh"
 	"github.com/chewr/tension-scale/display/input"
 	"github.com/fatih/color"
-	"github.com/gosuri/uilive"
 )
 
 type cliDisplay struct {
@@ -64,8 +63,6 @@ func (d *cliDisplay) Start(ctx context.Context) {
 
 func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
 	// TODO(rchew) wrap
-	uw := uilive.New()
-	uw.Out = w
 	d := &cliDisplay{
 		printer: refresh.NewPrinter(w),
 	}

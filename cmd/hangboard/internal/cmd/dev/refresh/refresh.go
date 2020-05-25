@@ -1,4 +1,4 @@
-package gosuri
+package refresh
 
 import (
 	"math/rand"
@@ -12,15 +12,15 @@ import (
 	"periph.io/x/periph/conn/physic"
 )
 
-var spinnerCmd = &cobra.Command{
-	Use:   "uilive",
-	Short: "test the spinner",
-	RunE:  doUilive,
+var refreshingCliCmd = &cobra.Command{
+	Use:   "refreshing-cli",
+	Short: "test the refreshing cli",
+	RunE:  doRefreshingCli,
 }
 
 func AddCommands(rootCmd *cobra.Command) {
-	addFlags(spinnerCmd)
-	rootCmd.AddCommand(spinnerCmd)
+	addFlags(refreshingCliCmd)
+	rootCmd.AddCommand(refreshingCliCmd)
 }
 
 const (
@@ -31,7 +31,7 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(flagColor, "c", "", "color")
 }
 
-func doUilive(cmd *cobra.Command, args []string) error {
+func doRefreshingCli(cmd *cobra.Command, args []string) error {
 	start := time.Now()
 	// st := state.Rest(time.Now().Add(20 * time.Second))
 	forceInput := &input.DynamicForceInput{}
