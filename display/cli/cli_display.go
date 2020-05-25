@@ -94,7 +94,7 @@ func title(state display.State) string {
 func clock(state display.State) string {
 	if expiring, ok := state.ExpiringState(); ok {
 		ttl := expiring.Deadline().Sub(time.Now())
-		return fmt.Sprintf("%v", ttl)
+		return fmt.Sprintf("%5.2fs", ttl.Seconds())
 	}
 	return ""
 }
@@ -188,6 +188,5 @@ func ToCliOutput(startTime time.Time, state display.State) string {
 		clock(state),
 		progressBar(startTime, state),
 		powerBar(state),
-		"blah",
 	}, "    ")
 }
