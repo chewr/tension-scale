@@ -2,6 +2,8 @@ package refresh
 
 import (
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 type CliOutput interface {
@@ -9,8 +11,17 @@ type CliOutput interface {
 	WithColor() string
 }
 
+func NoShow() CliOutput {
+	// TODO(rchew) implement more better
+	return FromString("")
+}
+
 func FromString(s string) CliOutput {
 	return FromStrings(s, s)
+}
+
+func WithColors(s string, colors ...color.Attribute) CliOutput {
+	return FromStrings(s, color.New(colors...).Sprint(s))
 }
 
 type basicImpl struct {

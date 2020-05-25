@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 )
 
+// TODO(rchew) spinner semantics work better I think
 type Printer interface {
 	Print(output CliOutput) error
 }

@@ -1,14 +1,13 @@
 package gosuri
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/chewr/tension-scale/display/cli"
+	"github.com/chewr/tension-scale/display/cli/refresh"
 	"github.com/chewr/tension-scale/display/input"
 	"github.com/chewr/tension-scale/display/state"
-	"github.com/gosuri/uilive"
 	"github.com/spf13/cobra"
 	"periph.io/x/periph/conn/physic"
 )
@@ -41,8 +40,8 @@ func doUilive(cmd *cobra.Command, args []string) error {
 		forceInput,
 		time.Now().Add(time.Second*12),
 	)
-	uw := uilive.New()
-	uw.Out = cmd.OutOrStdout()
+
+	printer := refresh.NewPrinter(cmd.OutOrStdout())
 	var f physic.Force = 0
 	rand.Seed(time.Now().Unix())
 	for {
@@ -69,10 +68,7 @@ func doUilive(cmd *cobra.Command, args []string) error {
 
 		forceInput.UpdateForceInput(f)
 
-		if _, err := fmt.Fprintln(uw, cli.ToCliOutput(start, st)); err != nil {
-			return err
-		}
-		if err := uw.Flush(); err != nil {
+		if err := printer.Print(cli.ToCliOutput(start, st)); err != nil {
 			return err
 		}
 		time.Sleep(time.Millisecond * 100)

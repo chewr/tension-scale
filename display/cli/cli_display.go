@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/chewr/tension-scale/display"
+	"github.com/chewr/tension-scale/display/cli/refresh"
 	"github.com/chewr/tension-scale/display/input"
 	"github.com/fatih/color"
 	"github.com/gosuri/uilive"
@@ -17,8 +18,7 @@ import (
 type cliDisplay struct {
 	mu           sync.Mutex
 	currentState display.State
-	// TODO(rchew) uilive is trash
-	uw *uilive.Writer
+	printer      refresh.Printer
 }
 
 func (d *cliDisplay) UpdateState(state display.State) error {
@@ -55,10 +55,9 @@ func (d *cliDisplay) Start(ctx context.Context) {
 			default:
 			}
 			currentState := d.getCurrentState()
-			// TODO(rchew) error logging
 			startTime := time.Time{} // TODO(Rchew) acutal time
-			_, _ = fmt.Fprintln(d.uw, ToCliOutput(startTime, currentState))
-			_ = d.uw.Flush()
+			// TODO(rchew) error logging
+			_ = d.printer.Print(ToCliOutput(startTime, currentState))
 		}
 	}()
 }
@@ -68,52 +67,57 @@ func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
 	uw := uilive.New()
 	uw.Out = w
 	d := &cliDisplay{
-		uw: uw,
+		printer: refresh.NewPrinter(w),
 	}
 	return d, nil
 }
 
-////
-// TODO(rchew) Clean up this implementation:
-// - Apply states to build a cli output type
-//   - cli output type has colored and uncolored output
-
-// TODO(rchew) multi-component ui
-
-func title(state display.State) string {
+func title(state display.State) refresh.CliOutput {
 	// TODO(rchew) move to display pkg
+	s := ""
 	switch state.GetType() {
 	case display.Rest:
-		return "Rest"
+		s = "Rest"
 	case display.Tare:
-		return "Taring"
+		s = "Taring"
 	case display.Wait, display.Work:
-		return "Pull"
+		s = "Pull"
 	case display.Halt:
 		fallthrough
 	default:
-		return ""
+		return refresh.NoShow()
 	}
+	return refresh.FromString(s)
 }
 
-func clock(state display.State) string {
+func clock(state display.State) refresh.CliOutput {
 	if expiring, ok := state.ExpiringState(); ok {
 		ttl := expiring.Deadline().Sub(time.Now())
-		return fmt.Sprintf("%5.2fs", ttl.Seconds())
+		return refresh.FromString(fmt.Sprintf("%5.2fs", ttl.Seconds()))
 	}
-	return ""
+	return refresh.NoShow()
 }
 
 // TODO(rchew) should state intrinsically know how long it has been in effect?
-func progressBar(startTime time.Time, state display.State) string {
+func progressBar(startTime time.Time, state display.State) refresh.CliOutput {
 	if expiring, ok := state.ExpiringState(); ok {
 		deadline := expiring.Deadline()
 		totalTime := deadline.Sub(startTime)
 		timeElapsed := time.Since(startTime)
 
-		return bar(int64(timeElapsed), int64(totalTime), 20)
+		displayColor := color.FgGreen
+		if totalTime-timeElapsed < 3*time.Second {
+			displayColor = color.FgRed
+		}
+
+		// TODO(rchew) flash in middle?
+
+		return refresh.WithColors(
+			bar(int64(timeElapsed), int64(totalTime), 20),
+			displayColor,
+		)
 	}
-	return ""
+	return refresh.NoShow()
 }
 
 func bar(val, max int64, width int) string {
@@ -146,11 +150,11 @@ func barWithOverfill(val, threshold, overfill int64, width int) string {
 	return b.String()
 }
 
-func powerBar(state display.State) string {
+func powerBar(state display.State) refresh.CliOutput {
 	if dependent, ok := state.InputDependentState(); ok {
-		displayColor := color.New(color.FgRed)
+		displayColor := color.FgRed
 		if dependent.Satisfied() {
-			displayColor = color.New(color.FgGreen)
+			displayColor = color.FgGreen
 		}
 
 		// TODO(rchew) this feels clumsy
@@ -159,25 +163,27 @@ func powerBar(state display.State) string {
 		if receivedOk && requiredOk {
 			if !dependent.Satisfied() &&
 				forceReceived.GetForce() > (forceRequired.GetForce()*3)/4 {
-				displayColor = color.New(color.FgYellow)
+				displayColor = color.FgYellow
 			}
-			return displayColor.Sprint(barWithOverfill(
+			s := barWithOverfill(
 				int64(forceReceived.GetForce()),
 				int64(forceRequired.GetForce()),
 				int64(4*forceRequired.GetForce()/3),
 				30,
-			))
+			)
+			return refresh.WithColors(s, displayColor)
 		}
-		return fmt.Sprintf("Required force: %v, Received Force: %v", requiredOk, receivedOk)
+		// TODO(rchew) print something to reflect whether things have been satisfied?
 	}
-	return ""
+	return refresh.NoShow()
 }
 
-func ToCliOutput(startTime time.Time, state display.State) string {
-	return strings.Join([]string{
+func ToCliOutput(startTime time.Time, state display.State) refresh.CliOutput {
+	return refresh.Concat(
+		refresh.FromString("    "),
 		title(state),
 		clock(state),
 		progressBar(startTime, state),
 		powerBar(state),
-	}, "    ")
+	)
 }
