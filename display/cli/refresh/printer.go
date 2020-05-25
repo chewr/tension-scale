@@ -8,11 +8,6 @@ import (
 	"unicode/utf8"
 )
 
-type CliOutput interface {
-	NoColor() string
-	WithColor() string
-}
-
 type Printer interface {
 	Print(output CliOutput) error
 }
