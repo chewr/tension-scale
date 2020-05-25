@@ -54,9 +54,8 @@ func (d *cliDisplay) Start(ctx context.Context) {
 			default:
 			}
 			currentState := d.getCurrentState()
-			startTime := time.Time{} // TODO(Rchew) acutal time
 			// TODO(rchew) error logging
-			_ = d.printer.Print(ToCliOutput(startTime, currentState))
+			_ = d.printer.Print(ToCliOutput(currentState))
 		}
 	}()
 }
@@ -95,9 +94,10 @@ func clock(state display.State) refresh.CliOutput {
 	return refresh.NoShow()
 }
 
-// TODO(rchew) should state intrinsically know how long it has been in effect?
-func progressBar(startTime time.Time, state display.State) refresh.CliOutput {
-	if expiring, ok := state.ExpiringState(); ok {
+func progressBar(state display.State) refresh.CliOutput {
+	if expiring, ok := state.ExpiringState(); ok &&
+		state.GetMutableState().Started() {
+		startTime := state.GetMutableState().GetStartTime()
 		deadline := expiring.Deadline()
 		totalTime := deadline.Sub(startTime)
 		timeElapsed := time.Since(startTime)
@@ -175,12 +175,12 @@ func powerBar(state display.State) refresh.CliOutput {
 	return refresh.NoShow()
 }
 
-func ToCliOutput(startTime time.Time, state display.State) refresh.CliOutput {
+func ToCliOutput(state display.State) refresh.CliOutput {
 	return refresh.Concat(
 		refresh.FromString("    "),
 		title(state),
 		clock(state),
-		progressBar(startTime, state),
+		progressBar(state),
 		powerBar(state),
 	)
 }

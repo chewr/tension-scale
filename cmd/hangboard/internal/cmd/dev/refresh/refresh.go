@@ -32,7 +32,6 @@ func addFlags(cmd *cobra.Command) {
 }
 
 func doRefreshingCli(cmd *cobra.Command, args []string) error {
-	start := time.Now()
 	// st := state.Rest(time.Now().Add(20 * time.Second))
 	forceInput := &input.DynamicForceInput{}
 	st := state.Work(
@@ -40,6 +39,7 @@ func doRefreshingCli(cmd *cobra.Command, args []string) error {
 		forceInput,
 		time.Now().Add(time.Second*12),
 	)
+	st.GetMutableState().Start()
 
 	printer := refresh.NewPrinter(cmd.OutOrStdout())
 	var f physic.Force = 0
@@ -68,7 +68,7 @@ func doRefreshingCli(cmd *cobra.Command, args []string) error {
 
 		forceInput.UpdateForceInput(f)
 
-		if err := printer.Print(cli.ToCliOutput(start, st)); err != nil {
+		if err := printer.Print(cli.ToCliOutput(st)); err != nil {
 			return err
 		}
 		time.Sleep(time.Millisecond * 100)
