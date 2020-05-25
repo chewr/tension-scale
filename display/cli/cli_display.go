@@ -73,6 +73,10 @@ func NewCliDisplay(w io.Writer) (display.AutoRefreshingModel, error) {
 }
 
 ////
+// TODO(rchew) Clean up this implementation:
+// - Apply states to build a cli output type
+//   - cli output type has colored and uncolored output
+
 // TODO(rchew) multi-component ui
 
 func title(state display.State) string {
@@ -124,21 +128,6 @@ func bar(val, max int64, width int) string {
 	return b.String()
 }
 
-// asd
-// █░░░░░░░░░░░|░░░░░
-// ██░░░░░░░░░░|░░░░░
-// ███░░░░░░░░░|░░░░░
-// ████░░░░░░░░|░░░░░
-// █████░░░░░░░|░░░░░
-// ██████░░░░░░|░░░░░
-// ███████░░░░░|░░░░░
-// ████████░░░░|░░░░░
-// █████████░░░|░░░░░
-// ██████████░░|░░░░░
-// ███████████░|░░░░░
-// ████████████|░░░░░
-// ████████████|█░░░░
-// ████████████|██░░░
 func barWithOverfill(val, threshold, overfill int64, width int) string {
 	filledBars := int(int64(width-1) * val / overfill)
 	thresholdBar := int(int64(width-1) * threshold / overfill)
@@ -163,6 +152,7 @@ func powerBar(state display.State) string {
 			displayColor = color.New(color.FgGreen)
 		}
 
+		// TODO(rchew) this feels clumsy
 		forceRequired, requiredOk := dependent.InputRequired().(input.ForceInput)
 		forceReceived, receivedOk := dependent.InputReceived().(input.ForceInput)
 		if receivedOk && requiredOk {
